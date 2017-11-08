@@ -13,7 +13,7 @@ public class HelloWorld {
 		System.out.println("Do nothing.");
     }
 
-    /* */ lala /*
+    /* /*/ int x = 1 /*
     */
     /* 
     The compiler ignores everything between

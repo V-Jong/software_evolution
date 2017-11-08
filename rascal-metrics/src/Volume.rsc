@@ -25,7 +25,7 @@ void printC() {
 
 int linesOfCode() {
     list[str] rawLines = readFileLines(|cwd:///../example/src/HelloWorld.java|);
-    list[str] lines = [line | line <- rawLines, isNonEmptyLine(line), isNonLineComment(line)];    
+    list[str] lines = [line | line <- rawLines, isNonEmptyLine(line), !isLineComment(line)];    
     return size(lines);
 }
 
@@ -33,19 +33,10 @@ bool isNonEmptyLine(str line) {
     return !isEmpty(trim(line));
 }
 
-bool isNonLineComment(str line) {
-    return !startsWith(trim(line), "//");
-}
-
-str tr
-
-list[str] filterOutBlockComments(list[str] lines) {
-    bool open = false;
-    for (line <- lines) {
-        if(line)
-    }
+bool isLineComment(str line) {
+    return /^\s*\/\// := line;
 }
 
 bool isNonJavaDocComment(str line) {
-    return 
+    
 }
