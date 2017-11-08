@@ -25,18 +25,26 @@ void printC() {
 
 int linesOfCode() {
     list[str] rawLines = readFileLines(|cwd:///../example/src/HelloWorld.java|);
-    list[str] lines = [line | line <- rawLines, isNonEmptyLine(line), !isLineComment(line)];    
+    list[str] lines = [line | line <- rawLines, !isWhiteLine(line), !isLineComment(line), !isClosedMultLineComment(line)];    
     return size(lines);
 }
 
-bool isNonEmptyLine(str line) {
-    return !isEmpty(trim(line));
+bool isWhiteLine(str line) {
+    return /^\s*$/ := line;
+}
+
+bool isSignificantLine(str line) {
+    
 }
 
 bool isLineComment(str line) {
     return /^\s*\/\// := line;
 }
 
-bool isNonJavaDocComment(str line) {
-    
+bool isOpenMultiLineComment(str line) {
+    return /\/\*(?!.*\*\/)/ := line;
+}
+
+bool isClosedMultLineComment(str line) {
+    return /^\s*\/\*.*\*\/\s*$/ := line;
 }
