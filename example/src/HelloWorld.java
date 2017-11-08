@@ -6,10 +6,22 @@ public class HelloWorld {
     }
     
     public static void secondMethod() {
-    		System.out.println("Do nothing.");
+		System.out.println("Do nothing.");
     }
     
     public static void thirdMethod() {
 		System.out.println("Do nothing.");
     }
+
+    /* */ lala /*
+    */
+    /* 
+    The compiler ignores everything between
+    */
+    /**/
+    /**
+    * documentation
+    */
+    /**documentation*/
+    // text
 }
