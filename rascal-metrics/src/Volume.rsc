@@ -10,31 +10,21 @@ import String;
 
 M3 helloWorldModel = createM3FromDirectory(|cwd:///../example|);
 
-void printModel() {
-    iprintln(helloWorldMethods);
-}
-
 void numberOfMethods() {
     int size = size(helloWorldMethods);
     println(size);
 }
 
-void printC() {
-    println("hello");
-}
-
 int linesOfCode() {
-    list[str] rawLines = readFileLines(|cwd:///../example/src/HelloWorld.java|);
-    list[str] lines = [line | line <- rawLines, !isWhiteLine(line), !isLineComment(line), !isClosedMultLineComment(line)];    
-    return size(lines);
+    str rawFile = readFile(|cwd:///../example/src/HelloWorld.java|);
+    str multiLineCommentsRemoved = removeMultiLineComments(rawFile);
+    list[str] splitted = split("\n", multiLineCommentsRemoved);
+    list[str] withoutComments = [line | line <- splitted, !isWhiteLine(line), !isLineComment(line), !isClosedMultiLineComment(line)];    
+    return size(withoutComments);
 }
 
 bool isWhiteLine(str line) {
     return /^\s*$/ := line;
-}
-
-bool isSignificantLine(str line) {
-    
 }
 
 bool isLineComment(str line) {
@@ -45,6 +35,12 @@ bool isOpenMultiLineComment(str line) {
     return /\/\*(?!.*\*\/)/ := line;
 }
 
-bool isClosedMultLineComment(str line) {
+bool isClosedMultiLineComment(str line) {
     return /^\s*\/\*.*\*\/\s*$/ := line;
+}
+
+str removeMultiLineComments(str input){
+    return visit(input) {
+       case /\/\*[\s\S]*?\*\// => ""  
+    };
 }
