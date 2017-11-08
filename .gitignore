@@ -1,3 +1,11 @@
 /META-INF
 /bin
-
+/.metadata
+/hsqldb-2.3.1
+/smallsql0.21_src
+/rascal-metrics/.classpath
+/rascal-metrics/.project
+/rascal-metrics/.settings
+/rascal-metrics/META-INF
+/.project
+/.classpath
