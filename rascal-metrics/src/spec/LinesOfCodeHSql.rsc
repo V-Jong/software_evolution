@@ -5,5 +5,5 @@ import IO;
 
 test bool testBigSql() {
     int result = linesOfCodePerFile(|project://hsqldb-2.3.1|);
-    return  result == 3;
+    return  result == 169184;
 }

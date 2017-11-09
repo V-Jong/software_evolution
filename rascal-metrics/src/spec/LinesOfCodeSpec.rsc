@@ -27,3 +27,7 @@ test bool shouldNotCountEdgeCases() {
     int result = linesOfCodePerFile(|project://rascal-metrics/src/spec/resources/EdgeCase.java|);
     return  result == 3;
 }
+
+test bool testDBMetaData() {
+    return linesOfCodePerFile(|project://smallsql0.21_src/src/smallsql/junit/TestDBMetaData.java|) == 217;
+}

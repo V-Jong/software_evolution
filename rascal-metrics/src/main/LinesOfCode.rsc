@@ -21,10 +21,8 @@ public int linesOfCodePerFile(loc file) {
     
     list[str] lines = split("\n", withoutMultiLineComments);
     list[str] withoutWhiteLines = [line | line <- lines, !isWhiteLine(line)];    
-	//for(line <- linesWithoutWhiteLines) {
-	//	println(line);
-	//}
-    return size(withoutWhiteLines);
+    int size = size(withoutWhiteLines);
+    return size;
 }
 
 private bool isWhiteLine(str line) {
@@ -39,7 +37,7 @@ private str emptyStrings(str input) {
 
 private str removeLineComments(str input) {
     return visit(input) {
-       case /^\s*\/\/.*/ => ""  
+       case /\/\/.*/ => ""  
     };
 }
 
