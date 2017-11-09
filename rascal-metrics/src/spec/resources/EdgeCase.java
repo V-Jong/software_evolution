@@ -1,1 +1,9 @@
-    /* /*/ int x = 1
+//    /*  int x = 1
+public void HelloWorld {
+//"hello/*"	
+"world/*"
+}
+
+/*
+
+*/

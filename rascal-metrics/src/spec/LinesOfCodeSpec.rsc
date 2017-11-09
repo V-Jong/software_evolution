@@ -25,5 +25,7 @@ test bool shouldCorrectlyCountHelloWorld() {
 
 test bool shouldNotCountEdgeCases() {
     int result = linesOfCodePerFile(|project://rascal-metrics/src/spec/resources/EdgeCase.java|);
-    return  result == 1;
+    print("LOC: ");
+    println(result);
+    return  result == 3;
 }

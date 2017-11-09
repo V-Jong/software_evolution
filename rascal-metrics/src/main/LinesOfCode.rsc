@@ -15,24 +15,28 @@ public int linesOfCodePerProject(loc project) {
 public int linesOfCodePerFile(loc file) {
     str rawFile = readFile(file);
     
-    str multiLineCommentsRemoved = removeMultiLineComments(rawFile);
-    list[str] lines = split("\n", multiLineCommentsRemoved);
-    list[str] linesWithoutWhiteLinesAndComments = [line | line <- lines, !isWhiteLine(line), !isLineComment(line)];    
-    // for(line <- linesWithoutWhiteLinesAndComments) {
-    //     println(line);
-    // }
-    return size(linesWithoutWhiteLinesAndComments);
+    str withoutLineComments = removeLineComments(rawFile);
+    str withoutMultiLineComments = removeMultiLineComments(withoutLineComments);
+    
+    list[str] lines = split("\n", withoutMultiLineComments);
+    list[str] linesWithoutWhiteLines = [line | line <- lines, !isWhiteLine(line)];    
+	//for(line <- linesWithoutWhiteLines) {
+	//	println(line);
+	//}
+    return size(linesWithoutWhiteLines);
 }
 
 private bool isWhiteLine(str line) {
     return /^\s*$/ := line;
 }
 
-private bool isLineComment(str line) {
-    return /^\s*\/\// := line;
+private str removeLineComments(str input) {
+    return visit(input) {
+       case /^\s*\/\/.*/ => ""  
+    };
 }
 
-str removeMultiLineComments(str input) {
+private str removeMultiLineComments(str input) {
     return visit(input) {
        case /\/\*[\s\S]*?\*\// => ""  
     };
