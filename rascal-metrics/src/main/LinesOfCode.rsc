@@ -20,11 +20,11 @@ public int linesOfCodePerFile(loc file) {
     str withoutMultiLineComments = removeMultiLineComments(emptyStrings);
     
     list[str] lines = split("\n", withoutMultiLineComments);
-    list[str] linesWithoutWhiteLines = [line | line <- lines, !isWhiteLine(line)];    
+    list[str] withoutWhiteLines = [line | line <- lines, !isWhiteLine(line)];    
 	//for(line <- linesWithoutWhiteLines) {
 	//	println(line);
 	//}
-    return size(linesWithoutWhiteLines);
+    return size(withoutWhiteLines);
 }
 
 private bool isWhiteLine(str line) {

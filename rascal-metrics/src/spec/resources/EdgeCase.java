@@ -1,5 +1,5 @@
 //    /*  int x = 1
-public void HelloWorld {
+public void helloWorld {
 //"hello/*"	
 "world/*"
 }
