@@ -16,7 +16,8 @@ public int linesOfCodePerFile(loc file) {
     str rawFile = readFile(file);
     
     str withoutLineComments = removeLineComments(rawFile);
-    str withoutMultiLineComments = removeMultiLineComments(withoutLineComments);
+    str emptyStrings = emptyStrings(withoutLineComments);
+    str withoutMultiLineComments = removeMultiLineComments(emptyStrings);
     
     list[str] lines = split("\n", withoutMultiLineComments);
     list[str] linesWithoutWhiteLines = [line | line <- lines, !isWhiteLine(line)];    
@@ -28,6 +29,12 @@ public int linesOfCodePerFile(loc file) {
 
 private bool isWhiteLine(str line) {
     return /^\s*$/ := line;
+}
+
+private str emptyStrings(str input) {
+    return visit(input) {
+       case /".*"/ => "\"\""  
+    };
 }
 
 private str removeLineComments(str input) {
