@@ -5,14 +5,20 @@ import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
 import List;
 import String;
+import Set;
 
 public int linesOfCodePerProject(loc project) {
+	println("Creating model...");
     M3 model = createM3FromEclipseProject(project);
-    list[loc] files = [ from | <from, to> <- model.containment, from.scheme == "java+compilationUnit"];
-    return sum([linesOfCodePerFile(file)| file <- files]);
+    set[loc] files = files(model);
+    int numberOfFiles = size(files);
+    zipped = zip(toList(files), [1..numberOfFiles+1]);
+	println("Found <numberOfFiles> files. Counting lines of code ...");
+    return sum([linesOfCodePerFile(file, number, numberOfFiles) | <file, number> <- zipped]);
 }     
 
-public int linesOfCodePerFile(loc file) {
+public int linesOfCodePerFile(loc file, int number, int numberOfFiles) {
+    println("<number>/<numberOfFiles>");
     str rawFile = readFile(file);
     
     str withoutLineComments = removeLineComments(rawFile);
@@ -21,8 +27,9 @@ public int linesOfCodePerFile(loc file) {
     
     list[str] lines = split("\n", withoutMultiLineComments);
     list[str] withoutWhiteLines = [line | line <- lines, !isWhiteLine(line)];    
-    int size = size(withoutWhiteLines);
-    return size;
+    int numberOfLines = size(withoutWhiteLines);
+    
+    return numberOfLines;
 }
 
 private bool isWhiteLine(str line) {
