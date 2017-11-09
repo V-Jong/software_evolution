@@ -7,7 +7,7 @@ import String;
 
 public int linesOfCodePerDirectory(loc directory) {
     M3 model = createM3FromDirectory(directory);
-    list[loc] files = [ from | <from, to> <- model.containment, from.scheme == "java+compilationUnit"];
+    list[loc] files = files(model);
     return sum([linesOfCodePerFile(file)| file <- files]);
 }   
 
