@@ -17,9 +17,9 @@ public int linesOfCodePerFile(loc file) {
     str multiLineCommentsRemoved = removeMultiLineComments(rawFile);
     list[str] lines = split("\n", multiLineCommentsRemoved);
     list[str] linesWithoutWhiteLinesAndComments = [line | line <- lines, !isWhiteLine(line), !isLineComment(line)];    
-    for(line <- linesWithoutWhiteLinesAndComments) {
-        println(line);
-    }
+    // for(line <- linesWithoutWhiteLinesAndComments) {
+    //     println(line);
+    // }
     return size(linesWithoutWhiteLinesAndComments);
 }
 

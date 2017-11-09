@@ -25,5 +25,5 @@ test bool shouldCorrectlyCountHelloWorld() {
 
 test bool shouldNotCountEdgeCases() {
     int result = linesOfCodePerFile(|cwd:///src/spec/resources/EdgeCase.java|);
-    return  result == 0;
+    return  result == 1;
 }
