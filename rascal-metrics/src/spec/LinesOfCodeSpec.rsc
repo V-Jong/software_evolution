@@ -31,3 +31,11 @@ test bool shouldNotCountEdgeCases() {
 test bool testDBMetaData() {
     return linesOfCodePerFile(|project://smallsql0.21_src/src/smallsql/junit/TestDBMetaData.java|) == 217;
 }
+
+test bool TransactionManagerMV2PL() {
+	return linesOfCodePerFile(|project://hsqldb-2.3.1/hsqldb/src/org/hsqldb/TransactionManagerMV2PL.java|) == 338;
+}
+
+test bool jaasAuthBean() {
+	return linesOfCodePerFile(|project://hsqldb-2.3.1/hsqldb/src/org/hsqldb/auth/JaasAuthBean.java|) == 144;
+}

@@ -1,55 +1,69 @@
 module main::LinesOfCode
 
 import IO;
-import lang::java::m3::Core;
-import lang::java::jdt::m3::Core;
 import List;
 import String;
 import Set;
+import lang::java::m3::Core;
+import lang::java::jdt::m3::Core;
+import main::lib::StringHelpers;
+import main::lib::ListHelpers;
 
 public int linesOfCodePerProject(loc project) {
 	println("Creating model...");
     M3 model = createM3FromEclipseProject(project);
-    set[loc] files = files(model);
-    int numberOfFiles = size(files);
-    zipped = zip(toList(files), [1..numberOfFiles+1]);
-	println("Found <numberOfFiles> files. Counting lines of code ...");
-    return sum([linesOfCodePerFile(file, number, numberOfFiles) | <file, number> <- zipped]);
-}     
+    	
+    set[loc] javaFiles = files(model);
+    
+    int numberOfFiles = size(javaFiles);    
+    println("Found <numberOfFiles> files. Counting lines of code ...");
+    
+    zippedWithIndex = zipWithIndex(toList(javaFiles));
+    
+	int sum = sum([withFileCounter(file,number,numberOfFiles) | <file, number> <- zippedWithIndex]);
+    return sum;
+} 
 
-public int linesOfCodePerFile(loc file, int number, int numberOfFiles) {
-    println("<number>/<numberOfFiles>");
+public int withFileCounter(loc file, int number, int numberOfFiles) {
+	linesOfCode = linesOfCodePerFile(file);
+	
+	println("<number>/<numberOfFiles>");
+	// println("<file>,<linesOfCode>");
+	
+	return linesOfCode;
+}
+
+public int linesOfCodePerFile(loc file) {
     str rawFile = readFile(file);
+	
+	list[str] cleanedFile = removeCommentsAndWhiteSpacesFromFile(rawFile);
     
-    str withoutLineComments = removeLineComments(rawFile);
-    str emptyStrings = emptyStrings(withoutLineComments);
-    str withoutMultiLineComments = removeMultiLineComments(emptyStrings);
-    
-    list[str] lines = split("\n", withoutMultiLineComments);
+    int numberOfLines = size(cleanedFile);
+    return numberOfLines; 
+}
+
+private list[str] removeCommentsAndWhiteSpacesFromFile(str input) {
+	str clearedStringContent = clearStringContent(input);
+    str withoutComments = removeComments(clearedStringContent);
+        
+    list[str] lines = split("\n", withoutComments);
     list[str] withoutWhiteLines = [line | line <- lines, !isWhiteLine(line)];    
-    int numberOfLines = size(withoutWhiteLines);
-    
-    return numberOfLines;
+
+    return withoutWhiteLines;
 }
 
 private bool isWhiteLine(str line) {
-    return /^\s*$/ := line;
+    return isEmpty(trim(line));
 }
 
-private str emptyStrings(str input) {
+private str clearStringContent(str input) {
     return visit(input) {
        case /".*"/ => "\"\""  
     };
 }
 
-private str removeLineComments(str input) {
+private str removeComments(str input) {
     return visit(input) {
-       case /\/\/.*/ => ""  
-    };
-}
-
-private str removeMultiLineComments(str input) {
-    return visit(input) {
-       case /\/\*[\s\S]*?\*\// => ""  
+       case /\/\*[\s\S]*?\*\/|\/\/.*/ => ""  
     };
 }
