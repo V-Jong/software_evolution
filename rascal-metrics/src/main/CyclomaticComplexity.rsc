@@ -14,6 +14,8 @@ import ParseTree;
 import util::FileSystem;
 import lang::java::\syntax::Disambiguate;
 
+//TODO: make methods shorter and simpler, find a way to compute in single string
+
 public void cyclomaticComplexityPerProject(loc project) {
 	println("Creating model...");
     M3 model = createM3FromEclipseProject(project);
@@ -31,15 +33,16 @@ public void cyclomaticComplexityPerProject(loc project) {
 
 public void evaluateProject(int totalLines, map[str, int] profile) {
 	println("Total lines of code is: <totalLines>");
-	real simple = toReal(profile["Simple"]);
-	real moreComplex = toReal(profile["More complex"]);
-	real complex = toReal(profile["Complex"]);
-	real untestable = toReal(profile["Untestable"]);
+	println();
+	int simple = profile["Simple"];
+	int moreComplex = profile["More complex"];
+	int complex = profile["Complex"];
+	int untestable = profile["Untestable"];
 	
-	real simplePerc = (simple / totalLines) * 100;
-	real moreComplexPerc = (moreComplex / totalLines) * 100;
-	real complexPerc = (complex / totalLines) * 100;
-	real untestablePerc = (untestable / totalLines) * 100;
+	int simplePerc = percent(simple, totalLines);
+	int moreComplexPerc = percent(moreComplex, totalLines);
+	int complexPerc = percent(complex, totalLines);
+	int untestablePerc = percent(untestable, totalLines);
 	
 	str rating = "--";
 	if (moreComplexPerc <= 25.00 && complexPerc == 0.00 && untestablePerc == 0.00)
@@ -51,11 +54,13 @@ public void evaluateProject(int totalLines, map[str, int] profile) {
 	else if (moreComplexPerc <= 50.00 && complexPerc == 15.00 && untestablePerc == 5.00)
 		rating = "-";
 	
-	println("Simple percentage: <simplePerc> %");
-	println("More complex percentage: <moreComplexPerc> %");
-	println("Complex percentage: <complexPerc> %");
-	println("Untestable percentage: <untestablePerc> %");
-	println("This project get the rating: <rating>");
+	println("Low: <simplePerc>%");
+	println("Moderate: <moreComplexPerc>%");
+	println("High: <complexPerc>%");
+	println("Very high: <untestablePerc>%");
+	println();
+	println("This project gets the rating: <rating>");
+	println();
 }
 
 public map[str, int] profileOfFile(lrel[int cc, loc location] fileResult) { //, map[str, int] profile
@@ -108,6 +113,8 @@ lrel[int cc, loc method] maxCC(loc file) = [<cyclomaticComplexity(m), m@\loc> | 
 int cyclomaticComplexity(MethodDec m) {
 	result = 1;
 	visit (m) {
+		case (Expr)`Expr || Expr`: result += 1;
+		case (Expr)`Expr && Expr`: result += 1;
 		case (Stm)`do <Stm _> while (<Expr _>);`: result += 1;
 		case (Stm)`while (<Expr _>) <Stm _>`: result += 1;
 		case (Stm)`if (<Expr _>) <Stm _>`: result +=1;
