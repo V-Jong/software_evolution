@@ -32,7 +32,7 @@ public void cyclomaticComplexityPerProject(loc project) {
 public void evaluateProject(int totalLines, map[str, int] profile) {
 	println("Total lines of code is: <totalLines>");
 	real simple = toReal(profile["Simple"]);
-	real moreComplex = toReal(profile["Simple"]);
+	real moreComplex = toReal(profile["More complex"]);
 	real complex = toReal(profile["Complex"]);
 	real untestable = toReal(profile["Untestable"]);
 	
