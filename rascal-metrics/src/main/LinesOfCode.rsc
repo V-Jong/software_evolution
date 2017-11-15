@@ -40,7 +40,7 @@ public int linesOfCodePerLocation(loc location) {
     return numberOfLines; 
 }
 
-private list[str] removeCommentsAndWhiteSpacesFromFile(str input) {
+public list[str] removeCommentsAndWhiteSpacesFromFile(str input) {
 	str clearedStringContent = clearStringContent(input);
     str withoutComments = removeComments(clearedStringContent);
     
