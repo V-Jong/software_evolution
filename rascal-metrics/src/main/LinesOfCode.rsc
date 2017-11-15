@@ -8,6 +8,7 @@ import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
 import main::lib::StringHelpers;
 import main::lib::ListHelpers;
+import main::LinesOfCode2;
 
 public int linesOfCodePerProject(loc project) {
 	println("Creating model...");
@@ -20,12 +21,12 @@ public int linesOfCodePerProject(loc project) {
     
     zippedWithIndex = zipWithIndex(toList(javaFiles));
     
-	int sum = sum([withFileCounter(file,number,numberOfFiles) | <file, number> <- zippedWithIndex]);
+	int sum = sum([withFileCounter(file, number + 1, numberOfFiles) | <file, number> <- zippedWithIndex]);
     return sum;
 } 
 
 public int withFileCounter(loc file, int number, int numberOfFiles) {
-	linesOfCode = linesOfCodePerFile(file);
+	linesOfCode = linesOfCodePerLocation(file);
 	
 	println("<number>/<numberOfFiles>");
 	// println("<file>,<linesOfCode>");
@@ -33,8 +34,8 @@ public int withFileCounter(loc file, int number, int numberOfFiles) {
 	return linesOfCode;
 }
 
-public int linesOfCodePerFile(loc file) {
-    str rawFile = readFile(file);
+public int linesOfCodePerLocation(loc location) {
+    str rawFile = readFile(location);
 	
 	list[str] cleanedFile = removeCommentsAndWhiteSpacesFromFile(rawFile);
     
@@ -45,7 +46,7 @@ public int linesOfCodePerFile(loc file) {
 private list[str] removeCommentsAndWhiteSpacesFromFile(str input) {
 	str clearedStringContent = clearStringContent(input);
     str withoutComments = removeComments(clearedStringContent);
-        
+    
     list[str] lines = split("\n", withoutComments);
     list[str] withoutWhiteLines = [line | line <- lines, !isWhiteLine(line)];    
 
@@ -58,12 +59,12 @@ private bool isWhiteLine(str line) {
 
 private str clearStringContent(str input) {
     return visit(input) {
-       case /".*"/ => "\"\""  
+       case /".*?"/ => "\"\""  
     };
 }
 
 private str removeComments(str input) {
     return visit(input) {
-       case /\/\*[\s\S]*?\*\/|\/\/.*/ => ""  
+       case /\/\*[\s\S]*?\*\/.*|\/\/.*/ => ""  
     };
 }
