@@ -3,6 +3,7 @@ module main::CyclomaticComplexity
 import IO;
 import List;
 import Set;
+import util::Math;
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
 import lang::java::m3::AST;
@@ -13,14 +14,48 @@ import ParseTree;
 import util::FileSystem;
 import lang::java::\syntax::Disambiguate;
 
-public set[loc] cyclomaticComplexityPerProject(loc project) {
+public void cyclomaticComplexityPerProject(loc project) {
 	println("Creating model...");
     M3 model = createM3FromEclipseProject(project);
     println("Model created, calculating CC");
     
-    projectFiles = files(model);
+    int totalLines = linesOfCodePerProject(model);
     
-	return methods(model);
+    projectFiles = files(model);
+    list[map[str, int]] profiles = [profileOfFile(maxCC(file)) | file <- projectFiles];
+    map[str, int] projectComplexity = mergeProfiles(profiles);
+    println("The total complexity is <projectComplexity>");
+    
+    evaluateProject(totalLines, projectComplexity);
+}
+
+public void evaluateProject(int totalLines, map[str, int] profile) {
+	println("Total lines of code is: <totalLines>");
+	real simple = toReal(profile["Simple"]);
+	real moreComplex = toReal(profile["Simple"]);
+	real complex = toReal(profile["Complex"]);
+	real untestable = toReal(profile["Untestable"]);
+	
+	real simplePerc = (simple / totalLines) * 100;
+	real moreComplexPerc = (moreComplex / totalLines) * 100;
+	real complexPerc = (complex / totalLines) * 100;
+	real untestablePerc = (untestable / totalLines) * 100;
+	
+	str rating = "--";
+	if (moreComplexPerc <= 25.00 && complexPerc == 0.00 && untestablePerc == 0.00)
+		rating = "++";
+	else if (moreComplexPerc <= 30.00 && complexPerc == 5.00 && untestablePerc == 0.00)
+		rating = "+";
+	else if (moreComplexPerc <= 40.00 && complexPerc == 10.00 && untestablePerc == 0.00)
+		rating = "o";
+	else if (moreComplexPerc <= 50.00 && complexPerc == 15.00 && untestablePerc == 5.00)
+		rating = "-";
+	
+	println("Simple percentage: <simplePerc> %");
+	println("More complex percentage: <moreComplexPerc> %");
+	println("Complex percentage: <complexPerc> %");
+	println("Untestable percentage: <untestablePerc> %");
+	println("This project get the rating: <rating>");
 }
 
 public map[str, int] profileOfFile(lrel[int cc, loc location] fileResult) { //, map[str, int] profile
@@ -46,6 +81,26 @@ public map[str, int] profileOfFile(lrel[int cc, loc location] fileResult) { //, 
 	return ("Simple": simple, "More complex": moreComplex, "Complex": complex, "Untestable": untestable);
 }
 
+map[str, int] mergeProfiles(list[map[str, int]] profiles) {
+	int totalSimple = 0;
+	int totalMoreComplex = 0;
+	int totalComplex = 0;
+	int totalUntestable = 0;
+	
+	for (profile <- profiles) {
+		int profileSimple = profile["Simple"];
+		int profileMoreComplex = profile["More complex"];
+		int profileComplex = profile["Complex"];
+		int profileUntestable = profile["Untestable"];
+		
+		totalSimple += profileSimple;
+		totalMoreComplex += profileMoreComplex;
+		totalComplex += profileComplex;
+		totalUntestable += profileUntestable;
+	}
+	return ("Simple": totalSimple, "More complex": totalMoreComplex, "Complex": totalComplex, "Untestable": totalUntestable);
+}
+
 set[MethodDec] allMethods(loc file) = { m | /MethodDec m := parse(#start[CompilationUnit], file) };
 
 lrel[int cc, loc method] maxCC(loc file) = [<cyclomaticComplexity(m), m@\loc> | m <- allMethods(file)];
@@ -66,54 +121,3 @@ int cyclomaticComplexity(MethodDec m) {
 	}
 	return result;
 }
-
-//public int cyclomaticComplexityPerFile(loc location) {
-//	str rawFile = readFile(location);
-//	
-//	list[str] cleaned = removeCommentsAndWhiteSpacesFromFile(rawFile);
-////	println(cleaned);
-//	
-//	list[int] complexityPerLine = [ complexityForLine(input) | input <- cleaned];
-//	
-//	list[int] ifsPerLine = [ countIfs(input) | input <- cleaned];
-//	int ifs = sum(ifsPerLine);
-//	println("<ifs> if statements found");
-//	list[int] forsPerLine = [ countFors(input) | input <- cleaned];
-//	int fors = sum(forsPerLine);
-//	println("<fors> for statements found");
-//	list[int] switchesPerLine = [ countSwitches(input) | input <- cleaned];
-//	int switches = sum(switchesPerLine);
-//	println("<switches> switch statements found");
-//	list[int] casesPerLine = [ countCases(input) | input <- cleaned];
-//	int cases = sum(casesPerLine);
-//	println("<cases> case statements found");
-//	list[int] catchesPerLine = [ countCatches(input) | input <- cleaned];
-//	int catches = sum(catchesPerLine);
-//	println("<catches> catch statements found");
-//	list[int] dosPerLine = [ countDos(input) | input <- cleaned];
-//	int dos = sum(dosPerLine);
-//	println("<dos> do statements found");
-//	list[int] whilesPerLine = [ countWhiles(input) | input <- cleaned];
-//	int whiles = sum(whilesPerLine);
-//	println("<whiles> while statements found");
-//	
-//	int complexity = sum(complexityPerLine);
-//	return complexity;
-//}
-//
-//public int complexityForLine(str input) = countIfs(input) + countFors(input) + countSwitches(input) + countCases(input) + 
-//	countCatches(input) + countDos(input) + countWhiles(input);
-//
-//public int countIfs(str content) = (0 | it + 1 | /if/ := content);
-//
-//public int countFors(str content) = (0 | it + 1 | /for/ := content);
-//
-//public int countSwitches(str content) = (0 | it + 1 | /switch/ := content);
-//
-//public int countCases(str content) = (0 | it + 1 | /case\s+/ := content);
-//
-//public int countCatches(str content) = (0 | it + 1 | /catch/ := content);
-//
-//public int countDos(str content) = (0 | it + 1 | /do/ := content);
-//
-//public int countWhiles(str content) = (0 | it + 1 | /while/ := content);

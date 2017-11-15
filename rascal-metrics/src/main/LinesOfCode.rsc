@@ -25,7 +25,7 @@ public int linesOfCodePerProject(M3 model) {
 public int withFileCounter(loc file, int number, int numberOfFiles) {
 	linesOfCode = linesOfCodePerLocation(file);
 	
-	println("<number>/<numberOfFiles>");
+	// println("<number>/<numberOfFiles>");
 	// println("<file>,<linesOfCode>");
 	
 	return linesOfCode;
