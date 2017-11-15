@@ -10,10 +10,7 @@ import main::lib::StringHelpers;
 import main::lib::ListHelpers;
 import main::LinesOfCode2;
 
-public int linesOfCodePerProject(M3 model) {
-//	println("Creating model...");
-//    M3 model = createM3FromEclipseProject(project);
-    	
+public int linesOfCodePerProject(M3 model) {    	
     set[loc] javaFiles = files(model);
     
     int numberOfFiles = size(javaFiles);    
