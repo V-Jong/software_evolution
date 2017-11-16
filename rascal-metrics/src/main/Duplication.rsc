@@ -12,12 +12,8 @@ import util::Math;
 private	int windowSize = 6;
 map[tuple[loc, tuple[int, int]], str] locationWindowsHashMap = ();
 
-public int totalLines(map[loc, list[str]] locationLines) {
-	return sum([size(locationLines[location])|location <- locationLines]);
-}
-
-public int duplicationPerModel() {
-	M3 model = createM3FromEclipseProject(|project://example|);
+public int duplicationPercentageOfModel() {
+	M3 model = createM3FromEclipseProject(|project://smallsql0.21_src|);
 	
 	list[loc] javaFiles = toList(files(model));
 	
@@ -39,15 +35,9 @@ public int duplicationPerModel() {
 	
 	locationWindowsHashMap = toMapUnique(locationWindowsHash);
 	grouped = classify(locationWindows, getHash);
-	duplicateWindows = [locationWindow | group <- grouped, locationWindow <- grouped[group] ,size(grouped[group]) > 1];
+	duplicateWindows = [locationWindow | group <- grouped, locationWindow <- grouped[group], size(grouped[group]) > 1];
 	
-	duplicateLines = {};
-	for (<location, <startLine, windowSize>> <- duplicateWindows) {
-		for (lineNumber <- [startLine..(startLine+windowSize)]) {
-			println("<location>: <lineNumber>");
-			duplicateLines = duplicateLines + <location, lineNumber>;
-		}
-	}
+	duplicateLines = {<location, lineNumber> | <location, <startLine, windowSize>> <- duplicateWindows, lineNumber <- [startLine..(startLine+windowSize)]};
 	
 	numberOfDuplicateLines = size(duplicateLines); 
 	totalNumberOfLines = totalLines(locationLinesMap);
@@ -56,6 +46,10 @@ public int duplicationPerModel() {
 
 public str getHash(tuple[loc, tuple[int, int]] t1) {
 	return locationWindowsHashMap[t1];
+}
+
+public int totalLines(map[loc, list[str]] locationLines) {
+	return sum([size(locationLines[location])|location <- locationLines]);
 }
 
 public list[tuple[int, int]] slidingWindow(int maxLine) {
