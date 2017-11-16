@@ -25,7 +25,7 @@ public int linesOfCodePerProject(M3 model) {
 public int withFileCounter(loc file, int number, int numberOfFiles) {
 	linesOfCode = linesOfCodePerLocation(file);
 	
-	println("<number>/<numberOfFiles>");
+	// println("<number>/<numberOfFiles>");
 	// println("<file>,<linesOfCode>");
 	
 	return linesOfCode;
@@ -40,7 +40,7 @@ public int linesOfCodePerLocation(loc location) {
     return numberOfLines; 
 }
 
-private list[str] removeCommentsAndWhiteSpacesFromFile(str input) {
+public list[str] removeCommentsAndWhiteSpacesFromFile(str input) {
 	str clearedStringContent = clearStringContent(input);
     str withoutComments = removeComments(clearedStringContent);
     
