@@ -62,6 +62,6 @@ private str clearStringContent(str input) {
 
 private str removeComments(str input) {
     return visit(input) {
-       case /\/\*[\s\S]*?\*\/.*|\/\/.*/ => ""  
+       case /\/\*[\s\S]*?\*\/|\/\/.*/ => ""  
     };
 }
