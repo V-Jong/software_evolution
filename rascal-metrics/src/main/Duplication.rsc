@@ -1,61 +1,77 @@
 module main::Duplication
 
-import lang::java::m3::Core;
-import lang::java::jdt::m3::Core;
 import IO;
-import String;
 import Set;
 import List;
-import main::lib::ListHelpers;
+
+import lang::java::m3::Core;
+import lang::java::jdt::m3::Core;
 import util::Math;
 
+import main::CommentRemover;
+import main::lib::ListHelpers;
+import main::lib::MapHelpers;
+
+alias window = tuple[int, int];
+alias locationWindow = tuple[loc, window];
+alias fileLines = list[str];
+alias lineIndex = tuple[loc, int];
+
 private	int windowSize = 6;
-map[tuple[loc, tuple[int, int]], str] locationWindowsHashMap = ();
 
-public int duplicationPercentageOfModel() {
-	M3 model = createM3FromEclipseProject(|project://smallsql0.21_src|);
-	
-	list[loc] javaFiles = toList(files(model));
-	
-	map[loc, list[str]] locationLinesMap = toMapUnique([<location, readFileLines(location)> | location <- javaFiles]);
-		
-	set[tuple[loc, tuple[int, int]]] locationWindows = {}; 
-	list[tuple[tuple[loc, tuple[int, int]], str]] locationWindowsHash = [];
-	for(location <- javaFiles) {
-		fileLines = locationLinesMap[location];
-		windows = slidingWindow(size(locationLinesMap[location]));
-		for(window <- windows) {
-			block = slice(fileLines, window[0], window[1]);
-			blockHash = toStringHash(block);
-			key = <location, window>;
-			locationWindows = locationWindows + key;
-			locationWindowsHash = locationWindowsHash + <key, blockHash>; 
-		}
-	}
-	
-	locationWindowsHashMap = toMapUnique(locationWindowsHash);
-	grouped = classify(locationWindows, getHash);
-	duplicateWindows = [locationWindow | group <- grouped, locationWindow <- grouped[group], size(grouped[group]) > 1];
-	
-	duplicateLines = {<location, lineNumber> | <location, <startLine, windowSize>> <- duplicateWindows, lineNumber <- [startLine..(startLine+windowSize)]};
-	
-	numberOfDuplicateLines = size(duplicateLines); 
-	totalNumberOfLines = totalLines(locationLinesMap);
-	return percent(numberOfDuplicateLines,  totalNumberOfLines);
+public int duplicateLinesRunner() {
+	model = createM3FromEclipseProject(|project://smallsql0.21_src|);
+	javaFiles = files(model);
+	map[loc, fileLines] locationLinesMap = (location: removeCommentsAndWhiteSpacesFromFile(readFile(location)) | location <- javaFiles);
+	return countDuplicateLines(locationLinesMap);
 }
 
-public str getHash(tuple[loc, tuple[int, int]] t1) {
-	return locationWindowsHashMap[t1];
+public int countDuplicateLines(map[loc, list[str]] locationLinesMap) {
+	locationWindowsBlockMap = buildLocationWindowsBlockMap(locationLinesMap);
+	
+	groupedByHash = values(groupByValue(locationWindowsBlockMap));
+	onlyDuplicateWindows = filterNonDuplicates(groupedByHash);
+	filterOriginalWindows = filterNonOriginal(onlyDuplicateWindows);
+	
+	duplicateLines = getLinesFromWindows(flatten(filterOriginalWindows));
+
+	return size(duplicateLines);
 }
 
-public int totalLines(map[loc, list[str]] locationLines) {
-	return sum([size(locationLines[location])|location <- locationLines]);
+private list[list[locationWindow]] filterNonOriginal(list[set[locationWindow]] groupedDuplicates) {
+	return [drop(0, toList(group)) | group <- groupedDuplicates];
 }
 
-public list[tuple[int, int]] slidingWindow(int maxLine) {
+private list[set[locationWindow]] filterNonDuplicates(list[set[locationWindow]] groupedDuplicates) {
+	return [group | group <- groupedDuplicates, size(group) > 1];
+}
+
+private map[locationWindow, fileLines] buildLocationWindowsBlockMap(map[loc, list[str]] locationLinesMap) {
+	return (<location, window> : getBlock(location, window, locationLinesMap) | 
+		location <- locationLinesMap, 
+		window <- getWindowsForLocation(location, locationLinesMap)
+	);
+}
+
+private list[str] getBlock(loc location, window window, map[loc, list[str]] locationLinesMap) {
+	return slice(locationLinesMap[location], window[0], window[1]);
+}
+
+private set[tuple[loc, int]] getLinesFromWindows(list[locationWindow] duplicateWindows) {
+	return { <location, lineNumber> | 
+		<location, <startLine, windowSize>> <- duplicateWindows, 
+		lineNumber <- [startLine..(startLine+windowSize)] 
+	};
+}
+
+private list[window] getWindowsForLocation(loc location, map[loc, list[str]] locationLinesMap) {
+	fileLines = locationLinesMap[location];
+	return slidingWindow(size(fileLines));
+}
+
+private list[window] slidingWindow(int maxLine) {
 	if(windowSize > maxLine) {
 		return [<0, maxLine>];
-	} else {
-		return [<i, windowSize> | i <- [0..maxLine - windowSize]];
 	}
+	return [<i, windowSize> | i <- [0..maxLine - windowSize + 1]];
 }
