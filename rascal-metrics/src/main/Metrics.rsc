@@ -18,74 +18,66 @@ import List;
 public void calculateMetricsForProject() {
 	println("Creating model ...");
     //M3 model = createM3FromEclipseProject(project);
-     //M3 model = createM3FromEclipseProject(|project://smallsql0.21_src|);
+    //M3 model = createM3FromEclipseProject(|project://smallsql0.21_src|);
     M3 model = createM3FromEclipseProject(|project://example|);
-    println("Model created, calculating metrics ...");
-    
+       
     set[loc] javaFiles = files(model);
-    
-    println("Removing comments and white lines ...");
     	map[loc, fileLines] locationLinesMap = (location: removeCommentsAndWhiteSpacesFromFile(readFile(location)) | location <- javaFiles);
-    println("Counting duplicate lines ...");
+    
     int duplicateLOC = countDuplicateLines(locationLinesMap);
-    println(duplicateLOC);
-    println("Counting total lines ...");
     int totalLOC = totalLines(locationLinesMap);
-    locRisk(totalLOC);
-    	unitSizes = unitSizePerModel(model);
-    	println(unitSizes);
+    list[int] unitSizes = unitSizePerModel(model);
+    int totalUnits = size(unitSizes);
+    int totalUnitSize = sum(unitSizes);
+	unitSizeComplexityFootprint = calculateComplexityFootprint(unitSizes, totalLOC, unitSizeRisk);
+	println("
+			'Unit size complexity matrix:");
+	printComplexityMatrix(unitSizeComplexityFootprint);
+	unitSizeComplexityRating = calculateComplexityRating(unitSizeComplexityFootprint, threshold);
+	cyclomaticComplexityRating = "++";
+    	printTotal(totalLOC, duplicateLOC, totalUnits, totalUnitSize, cyclomaticComplexityRating, unitSizeComplexityRating);
 }
 
-public int locRisk(int linesOfCode) {
+private str locRisk(int linesOfCode) {
 	if(linesOfCode < 66000) {
-		return 1;
+		return "++";
 	} 
 	if(linesOfCode < 246000) {
-		return 2;
+		return "+";
 	} 
 	if(linesOfCode < 665000) {
-		return 3;
+		return "o";
 	} 
 	if (linesOfCode < 1310000){
-		return 4;
+		return "-";
 	}
-	return 5;
+	return "--";
 }
 
-public int unitSizeRisk(int unitSize) {
+public str manYearsScore(str locScore) {
+	switch (locScore) {
+		case "++": return "0 − 8";
+		case "+": return "8 − 30";
+		case "o": return "30 − 80";
+		case "-": return "80 − 160";
+		case "--": return "160+";
+	}
+}
+
+private str unitSizeRisk(int unitSize) {
 	if(unitSize <= 6) {
-		return 1;
+		return "low";
 	}
 	if(unitSize <= 8) {
-		return 2;
+		return "moderate";
 	}
 	if(unitSize <= 15) {
-		return 3;
+		return "high";
 	} 
-	return 4;
+	return "extreme";
 }
 
-public str locScore(int average) {
-	switch (average) {
-		case 1: return "++";
-		case 2: return "+";
-		case 3: return "o";
-		case 4: return "-";
-		case 5: return "--";
-	}
-}
-
-public str manYearsScore(int average) {
-	switch (average) {
-		case 1: return "0 − 8";
-		case 2: return "8 − 30";
-		case 3: return "30 − 80";
-		case 4: return "80 − 160";
-		case 5: return "\> 160";
-	}
-}
-
-public str getDuplicationScore(int percentage) {
+private str getDuplicationScore(int percentage) {
 	if(percentage < 3) {
 		return "++";
 	} 
@@ -101,7 +93,7 @@ public str getDuplicationScore(int percentage) {
 	return "--";
 }
 
-public str unitComplexityRisk(int unitComplexity) {
+private str unitComplexityRisk(int unitComplexity) {
 	if(unitComplexity <= 10) {
 		return "low";
 	}
@@ -116,13 +108,7 @@ public str unitComplexityRisk(int unitComplexity) {
 	
 }
 
-public map[value, int] calculateComplexityFootprint(list[int] complexity, int totalLoc, complexityScore) {
-	map[value, list[int]] grouped = groupBy(complexity, complexityScore);
-	sums = mapValues(grouped, sum);
-	return (group: percent(sums[group], totalLoc) | group <- sums);
-}
-
-public list[tuple[str, map[str, int]]] threshold = [
+private list[tuple[str, map[str, int]]] threshold = [
 	<"++",("extreme": 0, "high": 0, "moderate": 25, "low": 100)>,
 	<"++",("extreme": 0, "high": 5, "moderate": 30, "low": 100)>,
 	<"o",("extreme": 0, "high": 10, "moderate": 40, "low": 100)>,
@@ -130,7 +116,13 @@ public list[tuple[str, map[str, int]]] threshold = [
 	<"--",("extreme": 100, "high": 100, "moderate": 100, "low": 100)>
 	];
 
-public str calculateComplexityRating(map[str, int] complexityFootprint, list[tuple[str, map[str, int]]] thresholds) {
+private map[value, int] calculateComplexityFootprint(list[int] complexity, int totalLoc, complexityScore) {
+	map[value, list[int]] grouped = groupBy(complexity, complexityScore);
+	sums = mapValues(grouped, sum);
+	return (group: percent(sums[group], totalLoc) | group <- sums);
+}
+
+private str calculateComplexityRating(map[str, int] complexityFootprint, list[tuple[str, map[str, int]]] thresholds) {
 	currentThresholdScore = thresholds[0];
 	currentThresholdMap = currentThresholdScore[1];
 	belowThresholdValues = forall([complexityFootprint[riskLevel] < currentThresholdMap[riskLevel] | riskLevel<-complexityFootprint]);
@@ -140,30 +132,41 @@ public str calculateComplexityRating(map[str, int] complexityFootprint, list[tup
 	return calculateComplexityRating(complexityFootprint, thresholds[1..]);
 }
 
-public void printResult(int LOC, int duplicateLines, int totalUnits, str complexityScore, str unitSizeScore) {
+private void printComplexityMatrix(map[value, int] complexityMatrix) {
+	println(" Risk level | Percentage
+			'------------|-----------");
+	for (key <- complexityMatrix) {
+		println(" <padLeft(key, 10, " ")> | <padLeft("<complexityMatrix[key]>", 9, " ")> ");	
+	}
+	println();
+}
+
+private void printTotal(int LOC, int duplicateLines, int totalUnits, int totalUnitSize, str complexityScore, str unitSizeScore) {
 	paddedLOC = padLeft(toString(LOC), 7, " ");
 	
-	locRiskAverage = locRisk(LOC);
-	paddedLOCScore = padLeft(locScore(locRiskAverage), 7, " ");
-	myvbp = padLeft(manYearsScore(locRiskAverage), 8, " ");
+	locScore = locRisk(LOC);
+	paddedLOCScore = padLeft(locScore, 7, " ");
+	myvbp = padLeft(manYearsScore(locScore), 8, " ");
 	
-	paddedTotalUnits = padLeft(toString(totalUnits), 7, " ");
+	paddedTotalUnits = padLeft(toString(totalUnits), 11, " ");
+	paddedTotalUnitSize = padLeft(toString(totalUnitSize), 9, " ");
 	
-	paddedDuplicateLines = padLeft(toString(duplicateLines), 7, " ");
+	paddedDuplicateLines = padLeft(toString(duplicateLines), 13, " ");
 	
 	duplicationPercentage = percent(duplicateLines, LOC);
 	duplicationScore = getDuplicationScore(duplicationPercentage);
 	
-	paddedUnitSizeScore = padLeft(unitSizeScore, 4, " ");
+	paddedUnitSizeScore = padLeft(unitSizeScore, 9, " ");
 	
-	paddedDuplicationScore = padLeft("(<duplicationPercentage>%) <duplicationScore>", 9, " ");
+	paddedDuplicationScore = padLeft("(<duplicationPercentage>%) <duplicationScore>", 13, " ");
 	
-	paddedComplexityScore = padLeft(complexityScore, 4, " ");
+	paddedComplexityScore = padLeft(complexityScore, 15, " ");
 	
-	str template = 	"  Measure   |   LOC   |  MYVBP   | Total units | Unit size | Duplicate LOC | Cyclomatic Complexity
-					'------------|---------|----------|-------------|-----------|---------------|----------------------
-					' Absolute   | <paddedLOC> |  <paddedLOC> |     <paddedTotalUnits> |       N/A |       <paddedDuplicateLines> |                  N/A
-					' SIG score  | <paddedLOCScore> | <myvbp> |         N/A |      <paddedUnitSizeScore> |     <paddedDuplicationScore> |                 <paddedComplexityScore>
+	
+	str template = 	"  Measure   |  Volume |    MYVBP | Total units | Unit size | Unit Complexity | Duplicate LOC |
+					'------------|---------|----------|-------------|-----------|-----------------|---------------
+					' Absolute   | <paddedLOC> |  <paddedLOC> | <paddedTotalUnits> | <paddedTotalUnitSize> |             N/A | <paddedDuplicateLines> |
+					' SIG score  | <paddedLOCScore> | <myvbp> |         N/A | <paddedUnitSizeScore> | <paddedComplexityScore> | <paddedDuplicationScore> | 
 					";
 	println(template);
 }
