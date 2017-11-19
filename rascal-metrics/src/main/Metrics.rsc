@@ -9,7 +9,11 @@ import main::LinesOfCode;
 import main::Duplication;
 import main::LinesOfCode;
 import main::lib::StringHelpers;
+import main::lib::ListHelpers;
+import main::lib::MapHelpers;
 import util::Math;
+import main::UnitSize;
+import List;
 
 public void calculateMetricsForProject() {
 	println("Creating model ...");
@@ -28,7 +32,8 @@ public void calculateMetricsForProject() {
     println("Counting total lines ...");
     int totalLOC = totalLines(locationLinesMap);
     locRisk(totalLOC);
-    	
+    	unitSizes = unitSizePerModel(model);
+    	println(unitSizes);
 }
 
 public int locRisk(int linesOfCode) {
@@ -55,19 +60,6 @@ public int unitSizeRisk(int unitSize) {
 		return 2;
 	}
 	if(unitSize <= 15) {
-		return 3;
-	} 
-	return 4;
-}
-
-public int unitComplexityRisk(int unitComplexity) {
-	if(unitComplexity <= 10) {
-		return 1;
-	}
-	if(unitComplexity <= 20) {
-		return 2;
-	}
-	if(unitComplexity <= 50) {
 		return 3;
 	} 
 	return 4;
@@ -107,6 +99,45 @@ public str getDuplicationScore(int percentage) {
 		return "-";
 	}
 	return "--";
+}
+
+public str unitComplexityRisk(int unitComplexity) {
+	if(unitComplexity <= 10) {
+		return "low";
+	}
+	if(unitComplexity <= 20) {
+		return "moderate";
+	}
+	if(unitComplexity <= 50) {
+		return "high";
+	} else {
+		return "extreme";
+	}
+	
+}
+
+public map[value, int] calculateComplexityFootprint(list[int] complexity, int totalLoc, complexityScore) {
+	map[value, list[int]] grouped = groupBy(complexity, complexityScore);
+	sums = mapValues(grouped, sum);
+	return (group: percent(sums[group], totalLoc) | group <- sums);
+}
+
+public list[tuple[str, map[str, int]]] threshold = [
+	<"++",("extreme": 0, "high": 0, "moderate": 25, "low": 100)>,
+	<"++",("extreme": 0, "high": 5, "moderate": 30, "low": 100)>,
+	<"o",("extreme": 0, "high": 10, "moderate": 40, "low": 100)>,
+	<"-",("extreme": 5, "high": 15, "moderate": 50, "low": 100)>,
+	<"--",("extreme": 100, "high": 100, "moderate": 100, "low": 100)>
+	];
+
+public str calculateComplexityRating(map[str, int] complexityFootprint, list[tuple[str, map[str, int]]] thresholds) {
+	currentThresholdScore = thresholds[0];
+	currentThresholdMap = currentThresholdScore[1];
+	belowThresholdValues = forall([complexityFootprint[riskLevel] < currentThresholdMap[riskLevel] | riskLevel<-complexityFootprint]);
+	if (belowThresholdValues) {
+		return currentThresholdScore[0];	
+	}
+	return calculateComplexityRating(complexityFootprint, thresholds[1..]);
 }
 
 public void printResult(int LOC, int duplicateLines, int totalUnits, str complexityScore, str unitSizeScore) {

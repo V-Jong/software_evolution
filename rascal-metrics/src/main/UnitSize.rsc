@@ -3,9 +3,11 @@ module main::UnitSize
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
 import main::LinesOfCode;
-import Set;
+import main::CommentRemover;
+import IO;
+import List;
 
-public lrel[int, loc] unitSizePerModel(M3 model) {
+public list[int] unitSizePerModel(M3 model) {
 	set[loc] methods = methods(model);
-	return [<linesOfCodePerLocation(methodLocation), methodLocation> | methodLocation <- methods];
+	return [size(removeCommentsAndWhiteSpacesFromFile(readFile(methodLocation))) | methodLocation <- methods];
 }
