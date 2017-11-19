@@ -1,5 +1,6 @@
 /eclipse
 /.metadata
+/.recommenders
 /hsqldb-2.3.1
 /smallsql0.21_src
 /rascal-metrics/.classpath
