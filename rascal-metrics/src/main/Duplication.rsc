@@ -19,13 +19,6 @@ alias lineIndex = tuple[loc, int];
 
 private	int windowSize = 6;
 
-public int duplicateLinesRunner() {
-	model = createM3FromEclipseProject(|project://smallsql0.21_src|);
-	javaFiles = files(model);
-	map[loc, fileLines] locationLinesMap = (location: removeCommentsAndWhiteSpacesFromFile(readFile(location)) | location <- javaFiles);
-	return countDuplicateLines(locationLinesMap);
-}
-
 public int countDuplicateLines(map[loc, list[str]] locationLinesMap) {
 	locationWindowsBlockMap = buildLocationWindowsBlockMap(locationLinesMap);
 	
