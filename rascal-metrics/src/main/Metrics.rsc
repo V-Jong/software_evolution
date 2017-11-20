@@ -4,6 +4,7 @@ import IO;
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
 
+import main::CyclomaticComplexity;
 import main::CommentRemover;
 import main::LinesOfCode;
 import main::Duplication;
@@ -18,14 +19,15 @@ import List;
 public void calculateMetricsForProject() {
 	println("Creating model ...");
     //M3 model = createM3FromEclipseProject(project);
-    //M3 model = createM3FromEclipseProject(|project://smallsql0.21_src|);
-    M3 model = createM3FromEclipseProject(|project://example|);
+    M3 model = createM3FromEclipseProject(|project://smallsql0.21_src|);
+    //M3 model = createM3FromEclipseProject(|project://example|);
        
     set[loc] javaFiles = files(model);
     	map[loc, fileLines] locationLinesMap = (location: removeCommentsAndWhiteSpacesFromFile(readFile(location)) | location <- javaFiles);
     
     int duplicateLOC = countDuplicateLines(locationLinesMap);
     int totalLOC = totalLines(locationLinesMap);
+    
     list[int] unitSizes = unitSizePerModel(model);
     int totalUnits = size(unitSizes);
     int totalUnitSize = sum(unitSizes);
@@ -34,7 +36,12 @@ public void calculateMetricsForProject() {
 			'Unit size complexity matrix:");
 	printComplexityMatrix(unitSizeComplexityFootprint);
 	unitSizeComplexityRating = calculateComplexityRating(unitSizeComplexityFootprint, threshold);
-	cyclomaticComplexityRating = "++";
+	
+	ccOfFiles = ccPerProjectFiles(javaFiles);
+	map[str, int] locPerCategory = locPerComplexityCategory(ccOfFiles);
+	map[str, real] riskProfile = getCyclomaticComplexityFootprint(locPerCategory, totalLOC);
+	printCyclomaticComplexityMatrix(riskProfile);
+	cyclomaticComplexityRating = getCyclomaticComplexityRating(riskProfile);
     	printTotal(totalLOC, duplicateLOC, totalUnits, totalUnitSize, cyclomaticComplexityRating, unitSizeComplexityRating);
 }
 
@@ -133,6 +140,17 @@ private str calculateComplexityRating(map[str, int] complexityFootprint, list[tu
 }
 
 private void printComplexityMatrix(map[value, int] complexityMatrix) {
+	println(" Risk level | Percentage
+			'------------|-----------");
+	for (key <- complexityMatrix) {
+		println(" <padLeft(key, 10, " ")> | <padLeft("<complexityMatrix[key]>", 9, " ")> ");	
+	}
+	println();
+}
+
+public void printCyclomaticComplexityMatrix(map[str, real] complexityMatrix) {
+	println("Cyclomatic Complexity matrix:");
+	
 	println(" Risk level | Percentage
 			'------------|-----------");
 	for (key <- complexityMatrix) {
