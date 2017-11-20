@@ -8,14 +8,9 @@ import String;
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
 import lang::java::m3::AST;
-import main::LinesOfCode;
 import lang::java::\syntax::Java15;
-import Exception;
 import ParseTree;
-import util::FileSystem;
-import lang::java::\syntax::Disambiguate;
-
-//TODO: make methods shorter and simpler, find a way to compute in single string
+import main::CommentRemover;
 
 public void init(loc project) { //cyclomaticComplexityPerProject
 	println("Creating model...");
@@ -25,7 +20,7 @@ public void init(loc project) { //cyclomaticComplexityPerProject
     int totalLines = 24050; //linesOfCodePerProject(model);
     
     projectFiles = files(model);
-    list[map[str, int]] profiles = [profileOfFile(calculateCyclomaticComplexityForFile2(file)) | file <- projectFiles];
+    list[map[str, int]] profiles = [profileOfFile(ccPerFile2(file)) | file <- projectFiles];
     map[str, int] projectComplexity = mergeProfiles(profiles);
     println("The complexity profile is: <projectComplexity>");
     
@@ -88,7 +83,7 @@ public map[str, int] profileOfFile(lrel[int cc, loc location] fileResult) {
 	for (file <- fileResult) {
 		int fCC = file.cc;
 		loc fLoc = file.location;
-		int linesOfCode = linesOfCodePerLocation(fLoc);
+		int linesOfCode = size(removeCommentsAndWhiteSpacesFromFile(readFile(fLoc)));
 		if (fCC <= 10) {
 			simple += linesOfCode;
 		} else if (fCC <= 20) {
@@ -124,9 +119,7 @@ map[str, int] mergeProfiles(list[map[str, int]] profiles) {
 
 set[MethodDec] allMethods(loc file) = { m | /MethodDec m := parse(#start[CompilationUnit], file) };
 
-set[MethodDec] allConstructors(loc file) = { m | /ConstructorDec m := parse(#start[CompilationUnit], file) };
-
-lrel[int cc, loc method] calculateCyclomaticComplexityForFile(loc file) = [<calculateCyclomaticComplexityForMethod(m), m@\loc> | m <- allMethods(file)];
+lrel[int cc, loc method] ccPerFile(loc file) = [<calculateCyclomaticComplexityForMethod(m), m@\loc> | m <- allMethods(file)];
 
 int calculateCyclomaticComplexityForMethod(MethodDec m) {
 	result = 1;
@@ -172,25 +165,20 @@ int calculateCyclomaticComplexity2(Statement impl) {
     return result;
 }
 
-list[tuple[int, loc]] calculateCyclomaticComplexityForFile2(loc fileLocation) { //calculateCyclomaticComplexityForFile2
+list[tuple[int, loc]] ccPerFile2(loc fileLocation) {
 	result = [];
     cc = 0;
-    //nr = 0;
     Declaration ast = createAstFromFile(fileLocation, true);
     list[Declaration] decls = ast.types;
     visit (decls) {
         case \method(_, name, params, exceptions, impl): {
-        	location = impl.src;
-        	//linesOfCode = linesOfCodePerLocation(location);
-            cc = calculateCyclomaticComplexity2(impl);
-            //println("Found method <name>");
-            //println("Location: <location>");
-            result += <cc, location>;
-        	//println("Lines of code: <linesOfCode>");
-            //nr += 1;
+            result += ccPerMethod(impl.src, impl);
+        }
+        case \constructor(name, params, exceptions, impl): {
+            result += ccPerMethod(impl.src, impl);
         }
     }
-    //println("cc = <cc>");
-    //println("<nr> function(s) in file");
     return result;
 }
+
+tuple[int, loc] ccPerMethod(loc location, Statement impl) = <calculateCyclomaticComplexity2(impl), location>;
