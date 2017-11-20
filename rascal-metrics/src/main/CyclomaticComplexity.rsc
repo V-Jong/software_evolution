@@ -66,6 +66,14 @@ public str getComplexityRating(real moderate, real high, real vHigh) {
 	return rating;
 }
 
+public map[str, real] getRiskProfilePercentagesInt(map[str, int] locProfile, totalLoc) {	
+	int simplePerc = percent(locProfile[simpleKey()], totalLoc);
+	int modPerc = percent(locProfile[modKey()], totalLoc);
+	int highPerc = percent(locProfile[highKey()], totalLoc);
+	int vHighPerc = percent(locProfile[vHighKey()], totalLoc);
+	return (simpleKey(): simplePerc, modKey(): modPerc, highKey(): highPerc, vHighKey(): vHighPerc);
+}
+
 public map[str, real] getRiskProfilePercentages(map[str, int] locProfile, totalLoc) {	
 	simple = toReal(locProfile[simpleKey()]);
 	moderate = toReal(locProfile[modKey()]);

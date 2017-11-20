@@ -4,6 +4,7 @@ import IO;
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
 
+import main::Maintainability;
 import main::CyclomaticComplexity;
 import main::CommentRemover;
 import main::LinesOfCode;
@@ -19,8 +20,10 @@ import List;
 public void calculateMetricsForProject() {
 	println("Creating model ...");
     //M3 model = createM3FromEclipseProject(project);
-    M3 model = createM3FromEclipseProject(|project://smallsql0.21_src|);
-    //M3 model = createM3FromEclipseProject(|project://example|);
+    //M3 model = createM3FromEclipseProject(|project://smallsql0.21_src|);
+    M3 model = createM3FromEclipseProject(|project://example|);
+    	
+    println("Analysing ...");
        
     set[loc] javaFiles = files(model);
     	map[loc, fileLines] locationLinesMap = (location: removeCommentsAndWhiteSpacesFromFile(readFile(location)) | location <- javaFiles);
@@ -181,11 +184,20 @@ private void printTotal(int LOC, int duplicateLines, int totalUnits, int totalUn
 	paddedComplexityScore = padLeft(complexityScore, 15, " ");
 	
 	
-	str template = 	"  Measure   |  Volume |    MYVBP | Total units | Unit size | Unit Complexity | Duplicate LOC |
-					'------------|---------|----------|-------------|-----------|-----------------|---------------
-					' Absolute   | <paddedLOC> |  <paddedLOC> | <paddedTotalUnits> | <paddedTotalUnitSize> |             N/A | <paddedDuplicateLines> |
-					' SIG score  | <paddedLOCScore> | <myvbp> |         N/A | <paddedUnitSizeScore> | <paddedComplexityScore> | <paddedDuplicationScore> | 
-					";
-	println(template);
+	str metrictemplate = "  Measure   |  Volume |    MYVBP | Total units | Unit size | Unit Complexity | Duplicate LOC |
+						 '------------|---------|----------|-------------|-----------|-----------------|---------------
+						 ' Absolute   | <paddedLOC> |  <paddedLOC> | <paddedTotalUnits> | <paddedTotalUnitSize> |             N/A | <paddedDuplicateLines> |
+						 ' SIG score  | <paddedLOCScore> | <myvbp> |         N/A | <paddedUnitSizeScore> | <paddedComplexityScore> | <paddedDuplicationScore> | 
+						 ";
+	println(metrictemplate);
+	
+	str analysability = calculateMaintainabilityCharacteristic([locScore, duplicationScore, unitSizeScore]);
+	str changeability = calculateMaintainabilityCharacteristic([complexityScore, duplicationScore]);
+	str testability = calculateMaintainabilityCharacteristic([complexityScore, unitSizeScore]);
+	
+	println();
+	println("Analysability: <analysability>");
+	println("Changeability: <changeability>");
+	println("Testability: <testability>");
 }
 
