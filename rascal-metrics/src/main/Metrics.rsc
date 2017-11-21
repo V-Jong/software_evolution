@@ -23,9 +23,9 @@ import main::UnitSize;
 public void calculateMetricsForProject() {
 	println("Creating model ...");
     //M3 model = createM3FromEclipseProject(project);
-    //M3 model = createM3FromEclipseProject(|project://smallsql0.21_src|);
+    M3 model = createM3FromEclipseProject(|project://smallsql0.21_src|);
     //M3 model = createM3FromEclipseProject(|project://example|);
-    M3 model = createM3FromEclipseProject(|project://example_piotr|);
+    //M3 model = createM3FromEclipseProject(|project://example_piotr|);
     	
     println("Analysing ...");
        
@@ -198,10 +198,13 @@ private void printTotal(int LOC, int duplicateLines, int totalUnits, int totalUn
 	str analysability = calculateMaintainabilityCharacteristic([locScore, duplicationScore, unitSizeScore]);
 	str changeability = calculateMaintainabilityCharacteristic([complexityScore, duplicationScore]);
 	str testability = calculateMaintainabilityCharacteristic([complexityScore, unitSizeScore]);
+	str maintainability = calculateMaintainabilityCharacteristic([analysability, changeability, testability]);
 	
 	println();
 	println("Analysability: <analysability>");
 	println("Changeability: <changeability>");
 	println("Testability: <testability>");
+	println();
+	println("Maintainability score: <maintainability>");
 }
 

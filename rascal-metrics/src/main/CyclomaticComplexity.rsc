@@ -125,7 +125,6 @@ int calculateCyclomaticComplexity(Statement impl) {
     visit (impl) {
         case \if(_,_) : result += 1;
         case \if(_,_,_) : result += 1;
-        case \switch(_,_) : result += 1;
         case \case(_) : result += 1;
         case \do(_,_) : result += 1;
         case \while(_,_) : result += 1;
