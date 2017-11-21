@@ -12,12 +12,12 @@ import main::CommentRemover;
 import main::lib::ListHelpers;
 import main::lib::MapHelpers;
 
+import main::config::config;
+
 alias window = tuple[int, int];
 alias locationWindow = tuple[loc, window];
 alias fileLines = list[str];
 alias lineIndex = tuple[loc, int];
-
-private	int windowSize = 6;
 
 public int countDuplicateLines(map[loc, list[str]] locationLinesMap) {
 	locationWindowsBlockMap = buildLocationWindowsBlockMap(locationLinesMap);
@@ -32,7 +32,10 @@ public int countDuplicateLines(map[loc, list[str]] locationLinesMap) {
 }
 
 private list[list[locationWindow]] filterNonOriginal(list[set[locationWindow]] groupedDuplicates) {
-	return [drop(0, toList(group)) | group <- groupedDuplicates];
+	if (COUNT_ORIGINALS) {
+		return [toList(group) | group <- groupedDuplicates];
+	}
+	return [drop(1, sort(toList(group))) | group <- groupedDuplicates];
 }
 
 private list[set[locationWindow]] filterNonDuplicates(list[set[locationWindow]] groupedDuplicates) {
@@ -52,8 +55,8 @@ private list[str] getBlock(loc location, window window, map[loc, list[str]] loca
 
 private set[tuple[loc, int]] getLinesFromWindows(list[locationWindow] duplicateWindows) {
 	return { <location, lineNumber> | 
-		<location, <startLine, windowSize>> <- duplicateWindows, 
-		lineNumber <- [startLine..(startLine+windowSize)] 
+		<location, <startLine, WINDOW_SIZE>> <- duplicateWindows, 
+		lineNumber <- [startLine..(startLine+WINDOW_SIZE)] 
 	};
 }
 
@@ -63,8 +66,8 @@ private list[window] getWindowsForLocation(loc location, map[loc, list[str]] loc
 }
 
 private list[window] slidingWindow(int maxLine) {
-	if(windowSize > maxLine) {
+	if(WINDOW_SIZE > maxLine) {
 		return [<0, maxLine>];
 	}
-	return [<i, windowSize> | i <- [0..maxLine - windowSize + 1]];
+	return [<i, WINDOW_SIZE> | i <- [0..maxLine - WINDOW_SIZE + 1]];
 }

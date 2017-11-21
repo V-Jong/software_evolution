@@ -7,6 +7,7 @@ public list[str] toList(str input) {
 }
 
 public str head(input) = input[0];
+
 public str tail(input) = input[1..];
 
 public str padLeft(str input, int length, str padChar) {

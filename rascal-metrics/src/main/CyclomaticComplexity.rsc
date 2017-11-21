@@ -1,10 +1,14 @@
 module main::CyclomaticComplexity
 
 import IO;
+
 import util::Math;
+
 import lang::java::m3::AST;
 import lang::java::\syntax::Java15;
+
 import ParseTree;
+
 import main::CommentRemover;
 
 public map[str, real] getCyclomaticComplexityFootprint(map[str, int] locPerCCCategory, int totalLoc) {

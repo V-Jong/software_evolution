@@ -2,6 +2,7 @@ module main::lib::ListHelpers
 
 import List;
 import IO;
+
 import main::lib::MapHelpers;
 
 public list[&T] zipWithIndex(list[&L] genericList) {

@@ -1,7 +1,7 @@
 module main::lib::MapHelpers
 
-import Set;
 import Map;
+import Set;
 
 public map[&V, set[&K]] groupByValue(map[&K, &V] genericMap) {
 	&V getValue(&K key) = genericMap[key];

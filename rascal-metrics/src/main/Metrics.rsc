@@ -1,27 +1,31 @@
 module main::Metrics
 
 import IO;
+import List;
+
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
 
-import main::Maintainability;
-import main::CyclomaticComplexity;
+import util::Math;
+
+import main::lib::MapHelpers;
+import main::lib::ListHelpers;
+import main::lib::StringHelpers;
+
 import main::CommentRemover;
-import main::LinesOfCode;
+import main::CyclomaticComplexity;
+import main::Maintainability;
+
 import main::Duplication;
 import main::LinesOfCode;
-import main::lib::StringHelpers;
-import main::lib::ListHelpers;
-import main::lib::MapHelpers;
-import util::Math;
 import main::UnitSize;
-import List;
 
 public void calculateMetricsForProject() {
 	println("Creating model ...");
     //M3 model = createM3FromEclipseProject(project);
     //M3 model = createM3FromEclipseProject(|project://smallsql0.21_src|);
-    M3 model = createM3FromEclipseProject(|project://example|);
+    //M3 model = createM3FromEclipseProject(|project://example|);
+    M3 model = createM3FromEclipseProject(|project://example_piotr|);
     	
     println("Analysing ...");
        
