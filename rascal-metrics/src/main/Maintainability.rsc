@@ -8,10 +8,8 @@ public str calculateMaintainabilityCharacteristic(list[str] metricScores) {
 	return getScoreFromIntVal(total);
 }
 
-private map[str, int] metricScoreIntVals() = ("++":2, "+":1, "o":0, "-":-1, "--":-2);
+private map[str, int] metricScoreIntVals() = ("++":4, "+":3, "o":2, "-":1, "--":0);
 
 private str getScoreFromIntVal(int val) {
-	if (val > 2) return "++";
-	if (val < -2) return "--";
 	return invertUnique(metricScoreIntVals())[val];
 }

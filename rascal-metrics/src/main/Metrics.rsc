@@ -26,7 +26,7 @@ import main::config::Config;
 public void run() {
 	if(WITH_TIMER) {
 		results = benchmark(("Rascal - Metrics": void() { calculateMetricsForProject(); }) );
-		println(results["Rascal - Metrics"] / 1000);
+		println("\nExecution time: " + toString(results["Rascal - Metrics"] / 1000) + "s");
 	} else {
 		calculateMetricsForProject();
 	}
