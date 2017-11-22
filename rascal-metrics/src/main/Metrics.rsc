@@ -35,40 +35,39 @@ public void run() {
 
 public void calculateMetricsForProject() {
 	println("Creating model ...");
-
     M3 model = createM3FromEclipseProject(CURRENT_PROJECT);
-    	
-    println("Analysing ...");
-       
+    	       
     set[loc] javaFiles = files(model);
+        
+    println("Removing comments ...");
     	map[loc, fileLines] locationLinesMap = (location: removeCommentsAndWhiteSpacesFromFile(readFile(location)) | location <- javaFiles);
-    
+    	
+    println("Counting duplicate lines ...");
     int duplicateLOC = countDuplicateLines(locationLinesMap);
     int totalLOC = totalLines(locationLinesMap);
     
+    println("Determining unit size risk ...");
     list[int] unitSizes = unitSizePerModel(model);
     int totalUnits = size(unitSizes);
     int totalUnitSize = sum(unitSizes);
+    
 	unitSizeComplexityFootprint = calculateComplexityFootprint(unitSizes, totalLOC, unitSizeRisk);
-	println("
-			'Unit size complexity matrix:");
-	printComplexityMatrix(unitSizeComplexityFootprint);
 	unitSizeComplexityRating = calculateComplexityRating(unitSizeComplexityFootprint, threshold);
 	
+	println("Determining unit interface risk ...");
 	list[int] interfaceSizes = values(getParametersPerUnit(javaFiles));
-	println("
-			'Unit interface complexity matrix:");
+	
 	unitInterfaceComplexityFootprint = calculateComplexityFootprint(interfaceSizes, sum(interfaceSizes), unitInterfaceRisk);
-	printComplexityMatrix(unitInterfaceComplexityFootprint);
 	unitInterfaceComplexityRating = calculateComplexityRating(unitInterfaceComplexityFootprint, thresholdInterface);
 	
-	
+	println("Determining cyclomatic complexity ...");
 	ccOfFiles = ccPerProjectFiles(javaFiles);
 	map[str, int] locPerCategory = locPerComplexityCategory(ccOfFiles);
 	map[str, real] riskProfile = getCyclomaticComplexityFootprint(locPerCategory, totalLOC);
-	printCyclomaticComplexityMatrix(riskProfile);
 	cyclomaticComplexityRating = getCyclomaticComplexityRating(riskProfile);
-    	printTotal(totalLOC, duplicateLOC, totalUnits, totalUnitSize, cyclomaticComplexityRating, unitSizeComplexityRating);
+	
+	printFootPrints(unitSizeComplexityFootprint, unitInterfaceComplexityFootprint, riskProfile);
+    	printTotal(totalLOC, duplicateLOC, totalUnits, totalUnitSize, cyclomaticComplexityRating, unitSizeComplexityRating, unitInterfaceComplexityRating);
 }
 
 private str locRisk(int linesOfCode) {
@@ -207,7 +206,19 @@ public void printCyclomaticComplexityMatrix(map[str, num] complexityMatrix) {
 	println();
 }
 
-private void printTotal(int LOC, int duplicateLines, int totalUnits, int totalUnitSize, str complexityScore, str unitSizeScore) {
+private void printFootPrints(map[value, num] unitSizeComplexityFootprint, map[value, num] unitInterfaceComplexityFootprint, map[str, real] riskProfile) {
+	println("
+			'Unit size complexity matrix:");
+	printComplexityMatrix(unitSizeComplexityFootprint);
+
+	println("
+			'Unit interface complexity matrix:");
+	printComplexityMatrix(unitInterfaceComplexityFootprint);
+	
+	printCyclomaticComplexityMatrix(riskProfile);
+}
+
+private void printTotal(int LOC, int duplicateLines, int totalUnits, int totalUnitSize, str complexityScore, str unitSizeScore, str interfaceScore) {
 	paddedLOC = padLeft(toString(LOC), 7, " ");
 	
 	locScore = locRisk(LOC);
@@ -228,11 +239,12 @@ private void printTotal(int LOC, int duplicateLines, int totalUnits, int totalUn
 	
 	paddedComplexityScore = padLeft(complexityScore, 15, " ");
 	
+	paddedInterfaceScore = padLeft(interfaceScore, 15, " ");
 	
-	str metrictemplate = "  Measure   |  Volume |    MYVBP | Total units | Unit size | Unit Complexity | Duplicate LOC |
-						 '------------|---------|----------|-------------|-----------|-----------------|---------------
-						 ' Absolute   | <paddedLOC> |  <paddedLOC> | <paddedTotalUnits> | <paddedTotalUnitSize> |             N/A | <paddedDuplicateLines> |
-						 ' SIG score  | <paddedLOCScore> | <myvbp> |         N/A | <paddedUnitSizeScore> | <paddedComplexityScore> | <paddedDuplicationScore> | 
+	str metrictemplate = "  Measure   |  Volume |    MYVBP | Total Units | Unit Size | Unit Complexity | Duplicate LOC | Unit Interface |
+						 '------------|---------|----------|-------------|-----------|-----------------|--------------------------------|
+						 ' Absolute   | <paddedLOC> |  <paddedLOC> | <paddedTotalUnits> | <paddedTotalUnitSize> |             N/A | <paddedDuplicateLines> |             N/A
+						 ' SIG score  | <paddedLOCScore> | <myvbp> |         N/A | <paddedUnitSizeScore> | <paddedComplexityScore> | <paddedDuplicationScore> | <paddedInterfaceScore>
 						 ";
 	println(metrictemplate);
 	
