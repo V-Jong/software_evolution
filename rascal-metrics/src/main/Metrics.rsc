@@ -34,6 +34,7 @@ public void run() {
 
 public void calculateMetricsForProject() {
 	println("Creating model ...");
+
     M3 model = createM3FromEclipseProject(CURRENT_PROJECT);
     	
     println("Analysing ...");
@@ -207,10 +208,13 @@ private void printTotal(int LOC, int duplicateLines, int totalUnits, int totalUn
 	str analysability = calculateMaintainabilityCharacteristic([locScore, duplicationScore, unitSizeScore]);
 	str changeability = calculateMaintainabilityCharacteristic([complexityScore, duplicationScore]);
 	str testability = calculateMaintainabilityCharacteristic([complexityScore, unitSizeScore]);
+	str maintainability = calculateMaintainabilityCharacteristic([analysability, changeability, testability]);
 	
 	println();
 	println("Analysability: <analysability>");
 	println("Changeability: <changeability>");
 	println("Testability: <testability>");
+	println();
+	println("Maintainability score: <maintainability>");
 }
 
