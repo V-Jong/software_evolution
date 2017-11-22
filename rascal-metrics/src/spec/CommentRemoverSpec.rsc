@@ -1,37 +1,43 @@
 module spec::CommentRemoverSpec
 
-import main::CommentRemover;
 import IO;
+import List;
+
+import main::CommentRemover;
 import main::lib::ListHelpers;
 
-test bool shouldReplaceMultiLineCommentCharactersInString() {
+test bool shouldNotCountEdgeCases() {
 	string = readFile(|project://rascal-metrics/src/spec/resources/EdgeCase.java|);	
     list[str] result = removeCommentsAndWhiteSpacesFromFile(string);
-    printStringList(result);
-    return true;
+   
+    return size(result) == 3;
 }
 
 test bool shouldRemoveLineComments() {
-    int result = linesOfCodePerLocation(|project://rascal-metrics/src/spec/resources/LineComments.java|);
-    return result == 0;
+    string = readFile(|project://rascal-metrics/src/spec/resources/LineComments.java|);
+    list[str] result = removeCommentsAndWhiteSpacesFromFile(string);
+
+    return size(result) == 0;
 }
 
 test bool shouldNotCountWhiteLines() {
-    int result = linesOfCodePerLocation(|project://rascal-metrics/src/spec/resources/WhiteLines.java|);
-    return result == 0;
+    string = readFile(|project://rascal-metrics/src/spec/resources/WhiteLines.java|);
+    list[str] result = removeCommentsAndWhiteSpacesFromFile(string);
+    
+    return size(result) == 0;
 }
 
 test bool shouldNotCountMultiLineComments() {
-    int result = linesOfCodePerLocation(|project://rascal-metrics/src/spec/resources/MultiLineComments.java|);
-    return result == 0;
+    string = readFile(|project://rascal-metrics/src/spec/resources/MultiLineComments.java|);
+    list[str] result = removeCommentsAndWhiteSpacesFromFile(string);
+
+    return size(result) == 0;
 }
 
 test bool shouldCorrectlyCountHelloWorld() {
-    int result = linesOfCodePerLocation(|project://rascal-metrics/src/spec/resources/HelloWorld.java|);
-    return  result == 11;
+    string = readFile(|project://rascal-metrics/src/spec/resources/HelloWorld.java|);
+    list[str] result = removeCommentsAndWhiteSpacesFromFile(string);
+
+    return size(result) == 11;
 }
 
-test bool shouldNotCountEdgeCases() {
-    int result = linesOfCodePerLocation(|project://rascal-metrics/src/spec/resources/EdgeCase.java|);
-    return  result == 3;
-}

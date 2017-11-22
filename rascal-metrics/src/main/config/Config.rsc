@@ -1,7 +1,6 @@
 module main::config::Config
 
 // Projects
-
 private loc example = |project://example|;
 private loc example_piotr = |project://example_piotr|;
 private loc hsql = |project://hsqldb-2.3.1|;

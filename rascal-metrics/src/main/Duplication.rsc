@@ -65,7 +65,7 @@ private list[window] getWindowsForLocation(loc location, map[loc, list[str]] loc
 	return slidingWindow(size(fileLines));
 }
 
-private list[window] slidingWindow(int maxLine) {
+public list[window] slidingWindow(int maxLine) {
 	if(WINDOW_SIZE > maxLine) {
 		return [<0, maxLine>];
 	}
