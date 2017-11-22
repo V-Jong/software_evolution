@@ -12,7 +12,7 @@ import main::CommentRemover;
 import main::lib::ListHelpers;
 import main::lib::MapHelpers;
 
-import main::config::config;
+import main::config::Config;
 
 alias window = tuple[int, int];
 alias locationWindow = tuple[loc, window];

@@ -7,6 +7,7 @@ import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
 
 import util::Math;
+import util::Benchmark;
 
 import main::lib::MapHelpers;
 import main::lib::ListHelpers;
@@ -20,12 +21,20 @@ import main::Duplication;
 import main::LinesOfCode;
 import main::UnitSize;
 
+import main::config::Config;
+
+public void run() {
+	if(WITH_TIMER) {
+		results = benchmark(("Rascal - Metrics": void() { calculateMetricsForProject(); }) );
+		println(results["Rascal - Metrics"] / 1000);
+	} else {
+		calculateMetricsForProject();
+	}
+}
+
 public void calculateMetricsForProject() {
 	println("Creating model ...");
-    //M3 model = createM3FromEclipseProject(project);
-    //M3 model = createM3FromEclipseProject(|project://smallsql0.21_src|);
-    //M3 model = createM3FromEclipseProject(|project://example|);
-    M3 model = createM3FromEclipseProject(|project://example_piotr|);
+    M3 model = createM3FromEclipseProject(CURRENT_PROJECT);
     	
     println("Analysing ...");
        
