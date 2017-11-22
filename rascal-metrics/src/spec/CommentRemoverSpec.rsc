@@ -40,4 +40,3 @@ test bool shouldCorrectlyCountHelloWorld() {
 
     return size(result) == 11;
 }
-
