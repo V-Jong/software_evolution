@@ -20,6 +20,7 @@ import main::Maintainability;
 import main::Duplication;
 import main::LinesOfCode;
 import main::UnitSize;
+import main::UnitInterfacing;
 
 import main::config::Config;
 
@@ -53,6 +54,14 @@ public void calculateMetricsForProject() {
 			'Unit size complexity matrix:");
 	printComplexityMatrix(unitSizeComplexityFootprint);
 	unitSizeComplexityRating = calculateComplexityRating(unitSizeComplexityFootprint, threshold);
+	
+	list[int] interfaceSizes = values(getParametersPerUnit(javaFiles));
+	println("
+			'Unit interface complexity matrix:");
+	unitInterfaceComplexityFootprint = calculateComplexityFootprint(interfaceSizes, sum(interfaceSizes), unitInterfaceRisk);
+	printComplexityMatrix(unitInterfaceComplexityFootprint);
+	unitInterfaceComplexityRating = calculateComplexityRating(unitInterfaceComplexityFootprint, thresholdInterface);
+	
 	
 	ccOfFiles = ccPerProjectFiles(javaFiles);
 	map[str, int] locPerCategory = locPerComplexityCategory(ccOfFiles);
@@ -128,35 +137,57 @@ private str unitComplexityRisk(int unitComplexity) {
 		return "high";
 	} else {
 		return "extreme";
-	}
-	
+	}	
 }
 
-private list[tuple[str, map[str, int]]] threshold = [
-	<"++",("extreme": 0, "high": 0, "moderate": 25, "low": 100)>,
-	<"++",("extreme": 0, "high": 5, "moderate": 30, "low": 100)>,
-	<"o",("extreme": 0, "high": 10, "moderate": 40, "low": 100)>,
-	<"-",("extreme": 5, "high": 15, "moderate": 50, "low": 100)>,
-	<"--",("extreme": 100, "high": 100, "moderate": 100, "low": 100)>
-	];
+private str unitInterfaceRisk(int numberOfParms) {
+	if(numberOfParms <= 2) {
+		return "low";
+	}
+	if(numberOfParms <= 3) {
+		return "moderate";
+	}
+	if(numberOfParms <= 4) {
+		return "high";
+	} else {
+		return "extreme";
+	}	
+}
 
-private map[value, int] calculateComplexityFootprint(list[int] complexity, int totalLoc, complexityScore) {
+private list[tuple[str, map[str, real]]] threshold = [
+	<"++",("extreme": 0.0, "high": 0.0, "moderate": 25.0, "low": 100.0)>,
+	<"++",("extreme": 0.0, "high": 5.0, "moderate": 30.0, "low": 100.0)>,
+	<"o",("extreme": 0.0, "high": 10.0, "moderate": 40.0, "low": 100.0)>,
+	<"-",("extreme": 5.0, "high": 15.0, "moderate": 50.0, "low": 100.0)>,
+	<"--",("extreme": 100.0, "high": 100.0, "moderate": 100.0, "low": 100.0)>
+	];
+	
+private list[tuple[str, map[str, real]]] thresholdInterface = [
+	<"*****",("extreme": 2.2, "high": 5.4, "moderate": 12.1, "low": 100.0)>,
+	<"****",("extreme": 14.9, "high": 7.2, "moderate": 14.9, "low": 100.0)>,
+	<"***",("extreme": 4.8, "high": 10.2, "moderate": 17.7, "low": 100.0)>,
+	<"**",("extreme": 5.0, "high": 15.0, "moderate": 50.0, "low": 100.0)>,
+	<"*",("extreme": 100.0, "high": 100.0, "moderate": 100.0, "low": 100.0)>
+];
+	
+private map[value, num] calculateComplexityFootprint(list[int] complexity, int totalLoc, complexityScore) {
 	map[value, list[int]] grouped = groupBy(complexity, complexityScore);
 	sums = mapValues(grouped, sum);
 	return (group: percent(sums[group], totalLoc) | group <- sums);
 }
 
-private str calculateComplexityRating(map[str, int] complexityFootprint, list[tuple[str, map[str, int]]] thresholds) {
+private str calculateComplexityRating(map[str, num] complexityFootprint, list[tuple[str, map[str, num]]] thresholds) {
 	currentThresholdScore = thresholds[0];
 	currentThresholdMap = currentThresholdScore[1];
-	belowThresholdValues = forall([complexityFootprint[riskLevel] < currentThresholdMap[riskLevel] | riskLevel<-complexityFootprint]);
+	
+	belowThresholdValues = forall([complexityFootprint[riskLevel] <= currentThresholdMap[riskLevel] | riskLevel<-complexityFootprint]);
 	if (belowThresholdValues) {
 		return currentThresholdScore[0];	
 	}
 	return calculateComplexityRating(complexityFootprint, thresholds[1..]);
 }
 
-private void printComplexityMatrix(map[value, int] complexityMatrix) {
+private void printComplexityMatrix(map[value, num] complexityMatrix) {
 	println(" Risk level | Percentage
 			'------------|-----------");
 	for (key <- complexityMatrix) {
@@ -165,7 +196,7 @@ private void printComplexityMatrix(map[value, int] complexityMatrix) {
 	println();
 }
 
-public void printCyclomaticComplexityMatrix(map[str, real] complexityMatrix) {
+public void printCyclomaticComplexityMatrix(map[str, num] complexityMatrix) {
 	println("Cyclomatic Complexity matrix:");
 	
 	println(" Risk level | Percentage
