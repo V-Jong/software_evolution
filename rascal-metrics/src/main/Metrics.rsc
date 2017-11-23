@@ -140,13 +140,13 @@ private str unitComplexityRisk(int unitComplexity) {
 }
 
 private str unitInterfaceRisk(int numberOfParms) {
-	if(numberOfParms <= 2) {
+	if(numberOfParms < 2) {
 		return "low";
 	}
-	if(numberOfParms <= 3) {
+	if(numberOfParms < 3) {
 		return "moderate";
 	}
-	if(numberOfParms <= 4) {
+	if(numberOfParms < 4) {
 		return "high";
 	} else {
 		return "extreme";
@@ -239,12 +239,12 @@ private void printTotal(int LOC, int duplicateLines, int totalUnits, int totalUn
 	
 	paddedComplexityScore = padLeft(complexityScore, 15, " ");
 	
-	paddedInterfaceScore = padLeft(interfaceScore, 15, " ");
+	paddedInterfaceScore = padLeft(interfaceScore, 14, " ");
 	
 	str metrictemplate = "  Measure   |  Volume |    MYVBP | Total Units | Unit Size | Unit Complexity | Duplicate LOC | Unit Interface |
 						 '------------|---------|----------|-------------|-----------|-----------------|--------------------------------|
-						 ' Absolute   | <paddedLOC> |  <paddedLOC> | <paddedTotalUnits> | <paddedTotalUnitSize> |             N/A | <paddedDuplicateLines> |             N/A
-						 ' SIG score  | <paddedLOCScore> | <myvbp> |         N/A | <paddedUnitSizeScore> | <paddedComplexityScore> | <paddedDuplicationScore> | <paddedInterfaceScore>
+						 ' Absolute   | <paddedLOC> |  <paddedLOC> | <paddedTotalUnits> | <paddedTotalUnitSize> |             N/A | <paddedDuplicateLines> |            N/A |
+						 ' SIG score  | <paddedLOCScore> | <myvbp> |         N/A | <paddedUnitSizeScore> | <paddedComplexityScore> | <paddedDuplicationScore> | <paddedInterfaceScore> |
 						 ";
 	println(metrictemplate);
 	
