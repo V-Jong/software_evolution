@@ -1,4 +1,4 @@
-module \test
+module main
 
 import IO;
 import List;
@@ -23,19 +23,19 @@ public void detectClones() {
 	M3 model = createM3FromEclipseProject(project);
 	
 	set[loc] projectFiles = files(model);
-	list[Declaration] allMethods = [];
-	for (projectFile <- projectFiles) {
-		Declaration fileAst = createAstFromFile(projectFile, true);
-//		fileMethods = [ m | m <- fileAst.types, isMethod(m) ];
+	allMethods = [getMethodFromFileLocation(projectFile) | projectFile <- projectFiles];
+
+	iprintln(allMethods);
+}
+
+public list[Declaration] getMethodFromFileLocation(loc fileLocation) {
+		Declaration fileAst = createAstFromFile(fileLocation, true);
+		list[Declaration] allMethods = [];
 		visit (fileAst.types) {
 			case fMethod:\method(_, name, params, exceptions, impl): {
-//				iprintln("Found function <fMethod.decl>");
+				iprintln("Found function <fMethod.decl>");
 				allMethods += fMethod;
 			}
-//			case fConstr:\constructor(name, params, exceptions, impl): {
-//				println("Found constructor <name>");
-//			}
 		}
-	}
-	iprintln(allMethods);
+		return allMethods;
 }
