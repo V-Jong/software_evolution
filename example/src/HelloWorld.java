@@ -1,16 +1,8 @@
 public class HelloWorld {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) {    	
         // Prints "Hello, World" to the terminal window.
         System.out.println("Hello, World");
-    }
-    
-    public static void secondMethod(int i) {
-		System.out.println("Do nothing.");
-    }
-    
-    public static void thirdMethod() {
-		System.out.println("Do nothing.");
     }
 
     /* /*/ int x = 1;
