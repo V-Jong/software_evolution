@@ -5,7 +5,7 @@ public class HelloWorld2 {
         System.out.println("Hello, World");
     }
     
-    public static void secondMethod() {
+    public static void secondMethod(int i) {
 		System.out.println("Do nothing.");
     }
     
