@@ -4,6 +4,7 @@ import IO;
 import List;
 import Node;
 import Set;
+import Map;
 import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 
@@ -17,66 +18,87 @@ public void detectClones() {
 	subtrees = findSubtrees(fileAsts);
 	//println(size(subtrees));
 	
-	map[node, set[node]] grouped = classify(subtrees, unsetRec);
-	printGroup(grouped);
+	map[node, set[node]] groupedClasses = classify(subtrees, unsetRec);
+	println(size(groupedClasses));
+	map[node, set[node]] cloneClasses = filterNonDuplicates(groupedClasses);
+	println(size(cloneClasses));
+	//map[node, set[node]] removedSubtrees = domainX(cloneClasses, subsumption(domain(cloneClasses)));
+	map[node, set[node]] subsumptionCloneClasses = domainR(cloneClasses, subsumption(domain(cloneClasses)));
+	println(size(subsumptionCloneClasses));
+	//println("--------------------");
+	printGroup(subsumptionCloneClasses);
+}
+
+private map[node, set[node]] filterNonDuplicates(map[node, set[node]] grouped) {
+	return (group: grouped[group] | group <- grouped, size(grouped[group]) > 1);
 }
 
 public void printGroup(map[node, set[node]] group) {
 	for (key <- group) {
-		//println(key);
-		if(size(group[key]) > 1) {
-			println(key);
-			println("##########");			
-			for (decl <- group[key]) {
-				println(decl);
-			}
-			println("");
+		println(key);
+		//printSource(getOneFrom(group[key]).src);
+		println("##########");			
+		for (decl <- group[key]) {
+			print(decl);
 		}
+		println("");
+		println("");
 	}
 }
+
+public set[node] subsumption(set[node] cloneClasses) {
+	children = findSubtreesNodes(cloneClasses);
+	println(size(children));
+	return {cloneClass | cloneClass <- cloneClasses, !(cloneClass in children)};
+}
+
 
 public set[Declaration] getFileAsts(set[loc] javaFiles) {
 	return {createAstFromFile(location, true) | location <- javaFiles};
 }
 
-public set[Declaration] findSubtrees(set[Declaration] fileAsts) {
+public set[node] findSubtrees(set[Declaration] fileAsts) {
 	 return flatten({findSubtrees(ast) | ast <- fileAsts});
 }
 
-public set[Declaration] findSubtrees(Declaration fileAst){
-	set[Declaration] subtrees = {};
+public set[node] findSubtrees(Declaration fileAst){
+	set[node] subtrees = {};
 	visit(fileAst.types) {
-		// These cases can probably be replaced by one Declaration case but I did not yet find out how.
-		case d: \compilationUnit(_, _): subtrees += d;
-    		case d: \compilationUnit(_, _, _): subtrees += d;
-    		case d: \enum(_, _, _, _): subtrees += d;
-    		case d: \enumConstant(_, _, _): subtrees += d;
-    		case d: \enumConstant(_, _): subtrees += d;
-    		case d: \class(_, _, _, _): subtrees += d;
-    		case d: \class(_): subtrees += d;
-    		case d: \interface(_, _, _, _): subtrees += d;
-    		case d: \field(_, _): subtrees += d;
-    		case d: \initializer(_): subtrees += d;
-    		case d: \method(_, _, _, _, _): subtrees += d;
-    		// this one breaks
-    		//case d: \method(_, _, _, _): subtrees += d;
-    		case d: \constructor(_, _, _, _): subtrees += d;
-    		case d: \import(_): subtrees += d;
-    		case d: \package(_): subtrees += d;
-    		case d: \package(_, _): subtrees += d;
-    		case d: \variables(_, _): subtrees += d;
-    		case d: \typeParameter(_, _): subtrees += d;
-    		case d: \annotationType(_, _): subtrees += d;
-    		case d: \annotationTypeMember(_, _): subtrees += d;
-    		case d: \annotationTypeMember(_, _, _): subtrees += d;
-    		case d: \parameter(_, _, _): subtrees += d;
-    		case d: \vararg(_, _): subtrees += d;
+		case Declaration x: subtrees += x;
+		case Expression x: subtrees += x;
+		case Statement x: subtrees += x;
 	}
 	return subtrees;
 }
 
+public set[node] findSubtreesNodes(set[node] parents) {
+	 return flatten({findSubtreesNode(parent) | parent <- parents});
+}
+
+public set[node] findSubtreesNode(node parent) {
+	set[node] subtrees = {};
+	visit(parent) {
+		case node x: subtrees += x;
+	}
+	
+	//println(subtrees);
+	return subtrees - parent;
+}
+
 public set[&T] flatten(set[set[&T]] elems) {
 	return {elem | subElems <- elems, elem <- subElems};
+}
+
+public set[&T] flatten(set[list[&T]] elems) {
+	return {elem | subElems <- elems, elem <- subElems};
+}
+
+public void printSource(loc source) {
+	println(readFile(source));
+}
+
+public bool isSubNode(node child, node parent) {
+	return child in getChildren(parent);
 }
 
 //public void example() {

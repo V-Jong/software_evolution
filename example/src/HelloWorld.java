@@ -1,18 +1,15 @@
 public class HelloWorld {
 
-    public static void main(String[] args) {    	
-        // Prints "Hello, World" to the terminal window.
-        System.out.println("Hello, World");
+    public static void method1() {    	
+		int a = 0;
+		int b = 0;
+		int c = 0;
+		int d = 0;
     }
-
-    /* /*/ int x = 1;
-    /* 
-    The compiler ignores everything between
-    */
-    /**/
-    /**
-    * documentation
-    */
-    /**documentation*/
-    // text
+    public static void method1() {    	
+		int a = 0;
+		int b = 0;
+		int c = 0;
+		int d = 0;
+    }
 }
