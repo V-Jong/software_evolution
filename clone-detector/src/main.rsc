@@ -23,17 +23,81 @@ public void detectClones() {
 	map[node, set[node]] cloneClasses = filterNonDuplicates(groupedClasses);
 	println(size(cloneClasses));
 	//map[node, set[node]] removedSubtrees = domainX(cloneClasses, subsumption(domain(cloneClasses)));
-	map[node, set[node]] subsumptionCloneClasses = domainR(cloneClasses, subsumption(domain(cloneClasses)));
-	println(size(subsumptionCloneClasses));
+	map[node, set[node]] subsumptedCloneClasses = subsumption(cloneClasses);
+	println(size(subsumptedCloneClasses));
 	//println("--------------------");
-	printGroup(subsumptionCloneClasses);
+	printGroup(subsumptedCloneClasses);
 }
 
 private map[node, set[node]] filterNonDuplicates(map[node, set[node]] grouped) {
 	return (group: grouped[group] | group <- grouped, size(grouped[group]) > 1);
 }
 
-public void printGroup(map[node, set[node]] group) {
+// subsumption drops all clone classes that are strictly included in others
+private map[node, set[node]] subsumption(map[node, set[node]] cloneClasses) {
+	set[set[node]] valuesOnly = range(cloneClasses);
+	set[set[node]] cloneClassessChildren = mapper(valuesOnly, findSubtreesNodes);
+	
+		
+	return (cloneClass: cloneClasses[cloneClass] | cloneClass <- cloneClasses, memberOfSet(cloneClasses[cloneClass], cloneClassessChildren));
+}
+
+private bool memberOfSet(set[node] cloneClass, set[set[node]] cloneClassessChildren) {
+	for (setOfChildren <- cloneClassessChildren) {
+		if (cloneClass < setOfChildren) { 
+			return true;
+		}
+	}
+	return false;
+}
+
+private set[Declaration] getFileAsts(set[loc] javaFiles) {
+	return {createAstFromFile(location, true) | location <- javaFiles};
+}
+
+private set[node] findSubtrees(set[Declaration] fileAsts) {
+	 return flatten({findSubtrees(ast) | ast <- fileAsts});
+}
+
+private set[node] findSubtrees(Declaration fileAst){
+	set[node] subtrees = {};
+	visit(fileAst.types) {
+		case Declaration x: subtrees += x;
+		case Expression x: subtrees += x;
+		case Statement x: subtrees += x;
+	}
+	return subtrees;
+}
+
+private set[node] findSubtreesNodes(set[node] parents) {
+	 return flatten({findSubtreesNode(parent) | parent <- parents});
+}
+
+private set[node] findSubtreesNode(node parent) {
+	set[node] subtrees = {};
+	visit(parent) {
+		case node x: subtrees += x;
+	}	
+	return subtrees - parent;
+}
+
+private set[&T] flatten(set[set[&T]] elems) {
+	return {elem | subElems <- elems, elem <- subElems};
+}
+
+private set[&T] flatten(set[list[&T]] elems) {
+	return {elem | subElems <- elems, elem <- subElems};
+}
+
+private map[&K, &V2] mapValues(map[&K, &V] genericMap, fn) {
+	return (key: fn(genericMap[key]) | key <- genericMap);
+}
+
+private void printSource(loc source) {
+	println(readFile(source));
+}
+
+private void printGroup(map[node, set[node]] group) {
 	for (key <- group) {
 		println(key);
 		//printSource(getOneFrom(group[key]).src);
@@ -45,76 +109,3 @@ public void printGroup(map[node, set[node]] group) {
 		println("");
 	}
 }
-
-public set[node] subsumption(set[node] cloneClasses) {
-	children = findSubtreesNodes(cloneClasses);
-	println(size(children));
-	return {cloneClass | cloneClass <- cloneClasses, !(cloneClass in children)};
-}
-
-
-public set[Declaration] getFileAsts(set[loc] javaFiles) {
-	return {createAstFromFile(location, true) | location <- javaFiles};
-}
-
-public set[node] findSubtrees(set[Declaration] fileAsts) {
-	 return flatten({findSubtrees(ast) | ast <- fileAsts});
-}
-
-public set[node] findSubtrees(Declaration fileAst){
-	set[node] subtrees = {};
-	visit(fileAst.types) {
-		case Declaration x: subtrees += x;
-		case Expression x: subtrees += x;
-		case Statement x: subtrees += x;
-	}
-	return subtrees;
-}
-
-public set[node] findSubtreesNodes(set[node] parents) {
-	 return flatten({findSubtreesNode(parent) | parent <- parents});
-}
-
-public set[node] findSubtreesNode(node parent) {
-	set[node] subtrees = {};
-	visit(parent) {
-		case node x: subtrees += x;
-	}
-	
-	//println(subtrees);
-	return subtrees - parent;
-}
-
-public set[&T] flatten(set[set[&T]] elems) {
-	return {elem | subElems <- elems, elem <- subElems};
-}
-
-public set[&T] flatten(set[list[&T]] elems) {
-	return {elem | subElems <- elems, elem <- subElems};
-}
-
-public void printSource(loc source) {
-	println(readFile(source));
-}
-
-public bool isSubNode(node child, node parent) {
-	return child in getChildren(parent);
-}
-
-//public void example() {
-//	helloWorld = |java+compilationUnit:///src/HelloWorld.java|;
-//	helloWorld2 = |java+compilationUnit:///src/HelloWorld2.java|;
-//	
-//	astHelloWorld = createAstFromFile(helloWorld, true);
-//	astHelloWorld2 = createAstFromFile(helloWorld2, true);
-//
-//	
-//	iprintln(unsetRec(astHelloWorld));
-//	println("*****************************");
-//	iprintln(unsetRec(astHelloWorld2));
-//	
-//	println("*****************************");
-//	
-//	println(unsetRec(astHelloWorld) == unsetRec(astHelloWorld2));
-//}
-
