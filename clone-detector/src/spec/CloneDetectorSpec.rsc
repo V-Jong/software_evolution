@@ -2,14 +2,14 @@ module spec::CloneDetectorSpec
 
 import main::Main;
 
-test bool memberOfSetSpec() {
+test bool isSubsumptedSpec() {
 	set[set[str]] someSet = {{"a", "b", "c"}};
 	
-	return memberOfSet({"a"}, someSet);
+	return isSubsumpted({"a"}, someSet);
 }
 
-test bool memberOfSetSpec() {
+test bool isSubsumptedSpec() {
 	set[set[str]] someSet = {{"a", "b", "c"}};
 	
-	return !memberOfSet({"d"}, someSet);
+	return !isSubsumpted({"d"}, someSet);
 }

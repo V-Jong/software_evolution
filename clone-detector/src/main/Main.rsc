@@ -34,9 +34,18 @@ private void printCloneClasses(map[node, set[node]] cloneClasses) {
 	for(cloneGroup <- cloneGroups) {
 		for(clone <- cloneGroup) {
 			switch (clone) {
-				case Declaration x: println(readFile(x.src));
-				case Expression x: println(readFile(x.src));
-				case Statement x: println(readFile(x.src)); 
+				case Declaration x: {
+					println(x.src);
+					//println(readFile(x.src));
+				}
+				case Expression x: {
+					println(x.src);
+					//println(readFile(x.src));
+				}
+				case Statement x: {
+					println(x.src);
+					//println(readFile(x.src));
+				} 
 			}
 		}
 	}
