@@ -7,7 +7,10 @@ import Map;
 
 import IO;
 
-import main::IDEIntegration;
+import util::Math;
+
+import main::CloneMetrics;
+import main::LinesOfCode;
 import main::lib::SetHelpers;
 import main::lib::PrintHelpers;
 
@@ -25,6 +28,8 @@ public void detectClones(loc project) {
 	set[loc] projectFiles = files(model);
 	set[Declaration] fileAsts = createAstsFromFiles(projectFiles);
 	
+	totalLOC = totalLOCForProject(fileAsts);
+
 	set[node] subtrees = findSubtrees(fileAsts);
 
 	map[node, set[node]] groupedByNormalisedAst = classify(subtrees, unsetRec);
@@ -33,11 +38,15 @@ public void detectClones(loc project) {
 
 	cloneLocationsPerFile = getCloneLocationsPerFile(noSubsumptedCloneClasses);
 	println("Finished clone detection");
+
+	printCloneClasses(noSubsumptedCloneClasses);
+
+    printCloneReport(noSubsumptedCloneClasses, totalLOC);
 }
 
 private map[str, set[loc]] getCloneLocationsPerFile (map[node, set[node]] cloneClasses) {
 	allCloneLocations = mapper(flatten(range(cloneClasses)), getLocation);
-	return classify(allCloneLocations, getUri);	
+	return classify(allCloneLocations, getUri);
 }
 
 private str getUri(loc location) {
