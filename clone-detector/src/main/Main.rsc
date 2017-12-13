@@ -55,7 +55,7 @@ private map[node, set[node]] filterNonDuplicates(map[node, set[node]] grouped) {
 	return (group: grouped[group] | group <- grouped, size(grouped[group]) > 1);
 }
 
-public map[node, set[node]] dropSubsumptedCloneClasses(map[node, set[node]] cloneClasses) {
+private map[node, set[node]] dropSubsumptedCloneClasses(map[node, set[node]] cloneClasses) {
 	set[set[node]] valuesOnly = range(cloneClasses);
 	set[set[node]] cloneClassesChildren = mapper(valuesOnly, findSubtreesNodes);
 	
@@ -63,7 +63,7 @@ public map[node, set[node]] dropSubsumptedCloneClasses(map[node, set[node]] clon
 }
 
 // A subsumpted clone class is a clone class that is strictly included in another
-public bool isSubsumpted(set[&T] cloneClass, set[set[&T]] cloneClassesChildren) {
+private bool isSubsumpted(set[&T] cloneClass, set[set[&T]] cloneClassesChildren) {
 	return any(set[node] setOfChildren <- cloneClassesChildren, cloneClass < setOfChildren);
 }
 
