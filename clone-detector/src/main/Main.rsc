@@ -33,25 +33,30 @@ public void detectClones() {
 
 	printCloneClasses(noSubsumptedCloneClasses);
 	
+	printCloneReport(noSubsumptedCloneClasses, totalLOC);
+}
+
+private void printCloneReport(map[node, set[node]] clones, totalLOC) {
+	set[set[node]] cloneGroups = range(clones);
 	println();
 	println("Project contains <totalLOC> lines");
 	
-	clonesLOC = totalLOCClones(noSubsumptedCloneClasses);
+	clonesLOC = totalLOCClones(cloneGroups);
 	println("The total LOC of all clones in project is <clonesLOC> lines");
 	
 	real clonePercentage = getClonePercentage(clonesLOC, totalLOC);
 	println("Percentage of clones is: <clonePercentage>%");
 	
-	nrCloneClasses = getAmountOfCloneClasses(noSubsumptedCloneClasses);
-	nrClones = getAmountOfClones(noSubsumptedCloneClasses);
+	nrCloneClasses = getAmountOfCloneClasses(cloneGroups);
+	nrClones = getAmountOfClones(cloneGroups);
 	println("Nr of clone classes: <nrCloneClasses>");
 	println("Nr of clones: <nrClones>");
 	
-	tuple[loc location, int bSize] biggestClone = getBiggestClone(noSubsumptedCloneClasses);
-	println("The largest clone class consists of <biggestClone.bSize> lines, location: <biggestClone.location>");
+	tuple[loc location, int bSize] biggestClone = getBiggestClone(cloneGroups);
+	println("The largest clone consists of <biggestClone.bSize> lines, location: <biggestClone.location>");
 	
-	str biggestCloneString = readFile(biggestClone.location);
-	println("\n----------\n<biggestCloneString>\n----------\n");
+	int biggestCloneClass = getBiggestCloneClass(cloneGroups);
+	println("The largest clone class consists of <biggestCloneClass> clones");
 }
 
 private void printCloneClasses(map[node, set[node]] cloneClasses) {
