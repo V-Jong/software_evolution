@@ -7,6 +7,10 @@ import Map;
 
 import IO;
 
+import util::Math;
+
+import main::CloneMetrics;
+import main::LinesOfCode;
 import main::lib::SetHelpers;
 
 import lang::java::m3::AST;
@@ -19,6 +23,8 @@ public void detectClones() {
 	set[loc] projectFiles = files(model);
 	set[Declaration] fileAsts = createAstsFromFiles(projectFiles);
 	
+	totalLOC = totalLOCForProject(fileAsts);
+	
 	set[node] subtrees = findSubtrees(fileAsts);
 
 	map[node, set[node]] groupedByNormalisedDeclaration = classify(subtrees, unsetRec);
@@ -26,6 +32,26 @@ public void detectClones() {
 	map[node, set[node]] noSubsumptedCloneClasses = dropSubsumptedCloneClasses(cloneClasses);
 
 	printCloneClasses(noSubsumptedCloneClasses);
+	
+	println();
+	println("Project contains <totalLOC> lines");
+	
+	clonesLOC = totalLOCClones(noSubsumptedCloneClasses);
+	println("The total LOC of all clones in project is <clonesLOC> lines");
+	
+	real clonePercentage = getClonePercentage(clonesLOC, totalLOC);
+	println("Percentage of clones is: <clonePercentage>%");
+	
+	nrCloneClasses = getAmountOfCloneClasses(noSubsumptedCloneClasses);
+	nrClones = getAmountOfClones(noSubsumptedCloneClasses);
+	println("Nr of clone classes: <nrCloneClasses>");
+	println("Nr of clones: <nrClones>");
+	
+	tuple[loc location, int bSize] biggestClone = getBiggestClone(noSubsumptedCloneClasses);
+	println("The largest clone class consists of <biggestClone.bSize> lines, location: <biggestClone.location>");
+	
+	str biggestCloneString = readFile(biggestClone.location);
+	println("\n----------\n<biggestCloneString>\n----------\n");
 }
 
 private void printCloneClasses(map[node, set[node]] cloneClasses) {
