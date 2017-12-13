@@ -7,13 +7,19 @@ import Map;
 
 import IO;
 
+import main::IDEIntegration;
 import main::lib::SetHelpers;
+import main::lib::PrintHelpers;
+
+import main::Config;
 
 import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 
-public void detectClones() {
-	loc project = |project://example|;
+public map[str, set[loc]] cloneLocationsPerFile = ();
+
+public void detectClones(loc project) {
+	println("Running clone detection for <project>");
 	M3 model = createM3FromEclipseProject(project);
 	
 	set[loc] projectFiles = files(model);
@@ -21,33 +27,28 @@ public void detectClones() {
 	
 	set[node] subtrees = findSubtrees(fileAsts);
 
-	map[node, set[node]] groupedByNormalisedDeclaration = classify(subtrees, unsetRec);
-	map[node, set[node]] cloneClasses = filterNonDuplicates(groupedByNormalisedDeclaration);
+	map[node, set[node]] groupedByNormalisedAst = classify(subtrees, unsetRec);
+	map[node, set[node]] cloneClasses = filterNonDuplicates(groupedByNormalisedAst);
 	map[node, set[node]] noSubsumptedCloneClasses = dropSubsumptedCloneClasses(cloneClasses);
 
-	printCloneClasses(noSubsumptedCloneClasses);
+	cloneLocationsPerFile = getCloneLocationsPerFile(noSubsumptedCloneClasses);
+	println("Finished clone detection");
 }
 
-private void printCloneClasses(map[node, set[node]] cloneClasses) {
-	set[set[node]] cloneGroups = range(cloneClasses);
-	
-	for(cloneGroup <- cloneGroups) {
-		for(clone <- cloneGroup) {
-			switch (clone) {
-				case Declaration x: {
-					println(x.src);
-					//println(readFile(x.src));
-				}
-				case Expression x: {
-					println(x.src);
-					//println(readFile(x.src));
-				}
-				case Statement x: {
-					println(x.src);
-					//println(readFile(x.src));
-				} 
-			}
-		}
+private map[str, set[loc]] getCloneLocationsPerFile (map[node, set[node]] cloneClasses) {
+	allCloneLocations = mapper(flatten(range(cloneClasses)), getLocation);
+	return classify(allCloneLocations, getUri);	
+}
+
+private str getUri(loc location) {
+	return PROJECT.uri + location.path;
+}
+
+private loc getLocation(node tree) {
+	switch (tree) {
+		case Declaration x: return x.src;
+		case Expression x: return x.src;
+		case Statement x: return x.src;
 	}
 }
 
@@ -95,20 +96,4 @@ private set[node] findSubtreesNode(node parent) {
 		case node x: subtrees += x;
 	}	
 	return subtrees - parent;
-}
-
-private void printSource(loc source) {
-	println(readFile(source));
-}
-
-private void printGroup(map[node, set[node]] group) {
-	for (key <- group) {
-		println(key);
-		println("##########");			
-		for (cloneClass <- group[key]) {
-			println(cloneClass);
-		}
-		println("");
-		println("");
-	}
 }
