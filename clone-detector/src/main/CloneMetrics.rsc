@@ -4,6 +4,7 @@ import List;
 import Map;
 import Set;
 import IO;
+import Type;
 
 import util::Math;
 
@@ -26,7 +27,7 @@ public int totalLOCClones(set[set[node]] cloneGroups) {
 
 public tuple[loc, int] getBiggestClone(set[set[node]] cloneGroups) {
 	int biggestCloneSize = 0;
-	loc cloneSource = |project://unknown|;
+	loc cloneSource = |unknown:///|;
 	
 	for (cloneGroup <- cloneGroups) {
 		for (clone <- cloneGroup) {
@@ -63,7 +64,23 @@ public int getBiggestCloneClass(set[set[node]] cloneGroups) {
 	return max(cloneClassSizes);
 }
 
-public int getLocationSize(loc location) = location.end.line - location.begin.line;
+public int getLocationSize(loc location) {
+	try return location.end.line - location.begin.line;
+	catch: return 0;
+}
+
+public void cc() {
+	loc location = |java+compilationUnit:///src/HelloWorld.java|(301,218,<13,4>,<18,5>);// |project://example|;
+	switch (location) {
+		case _(_): {
+			println("Found with line info");
+		}
+		case _: {
+			println("Found without");
+		}
+	}
+}
+
 
 public real getClonePercentage(int LOCClones, int totalLOC) {
 	return round(toReal(LOCClones) / totalLOC * 100, 0.01);

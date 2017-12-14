@@ -9,7 +9,6 @@ import IO;
 
 import util::Math;
 
-import main::CloneMetrics;
 import main::LinesOfCode;
 import main::lib::SetHelpers;
 import main::lib::PrintHelpers;
@@ -41,7 +40,7 @@ public void detectClones(loc project) {
 
 	printCloneClasses(noSubsumptedCloneClasses);
 
-    printCloneReport(noSubsumptedCloneClasses, totalLOC);
+    printClonesReport(noSubsumptedCloneClasses, totalLOC);
 }
 
 private map[str, set[loc]] getCloneLocationsPerFile (map[node, set[node]] cloneClasses) {
@@ -105,4 +104,12 @@ private set[node] findSubtreesNode(node parent) {
 		case node x: subtrees += x;
 	}	
 	return subtrees - parent;
+}
+
+private set[node] normaliseNodes(set[node] nodes) {
+	set[node] normalised = {};
+	visit (nodes) {
+		case Expression x: normalised += x;
+	}
+	return normalised;
 }
