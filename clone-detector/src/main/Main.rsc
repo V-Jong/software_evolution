@@ -30,17 +30,29 @@ public void detectClones(loc project) {
 	totalLOC = totalLOCForProject(fileAsts);
 
 	set[node] subtrees = findSubtrees(fileAsts);
+	
+	set[node] normalisedSubtrees = normaliseNodes(subtrees);
 
-	map[node, set[node]] groupedByNormalisedAst = classify(subtrees, unsetRec);
-	map[node, set[node]] cloneClasses = filterNonDuplicates(groupedByNormalisedAst);
-	map[node, set[node]] noSubsumptedCloneClasses = dropSubsumptedCloneClasses(cloneClasses);
+	type1Clones = findClonesForTree(subtrees);
+	type2Clones = findClonesForTree(normalisedSubtrees);
 
-	cloneLocationsPerFile = getCloneLocationsPerFile(noSubsumptedCloneClasses);
+	cloneLocationsPerFile = getCloneLocationsPerFile(type1Clones);
 	println("Finished clone detection");
 
-	printCloneClasses(noSubsumptedCloneClasses);
+//	printCloneClasses(type1Clones);
+//
+//    printClonesReport(type1Clones, totalLOC);
+//    
+    printCloneClasses(type2Clones);
 
-    printClonesReport(noSubsumptedCloneClasses, totalLOC);
+    printClonesReport(type2Clones, totalLOC);
+}
+
+private map[node, set[node]] findClonesForTree(set[node] tree) {
+	map[node, set[node]] groupedByNormalisedAst = classify(tree, unsetRec);
+	map[node, set[node]] cloneClasses = filterNonDuplicates(groupedByNormalisedAst);
+	map[node, set[node]] noSubsumptedCloneClasses = dropSubsumptedCloneClasses(cloneClasses);
+	return noSubsumptedCloneClasses;
 }
 
 private map[str, set[loc]] getCloneLocationsPerFile (map[node, set[node]] cloneClasses) {
@@ -106,10 +118,37 @@ private set[node] findSubtreesNode(node parent) {
 	return subtrees - parent;
 }
 
+public str standardName() = "Non determinism is bad mmkay";
+public str standardValue() = "5";
+
 private set[node] normaliseNodes(set[node] nodes) {
-	set[node] normalised = {};
-	visit (nodes) {
-		case Expression x: normalised += x;
+//	iprintln(nodes);
+	set[node] result = {};
+	normalised = visit (nodes) {
+		case x:\method(a, name, b, c, d) => createNormalisedMethod(x) //\method(a, standardName(), b, c, d)
+//		case x:\method(a, name, b) => \method(a, standardName(), b)
+		case x:\variable(name, a) => \variable(standardName(), a)
+		case x:\variable(name, a, b) => \variable(standardName(), a, b)
+		case x:\number(_) => createIntNode(x)
+		case x:\stringLiteral(_) => createIntNode(x)
+		case x:\booleanLiteral(_) => createIntNode(x)
+		case Type x => wildcard()
 	}
+//	iprintln(normalised);
+	
 	return normalised;
+}
+
+public Declaration createNormalisedMethod(Declaration original) {
+	newMethod = \method(original.\return, standardName(), original.parameters, original.exceptions, original.impl);
+	newMethod.src = original.src;
+
+	return newMethod;
+}
+
+public Expression createIntNode(Expression original) {
+	newInt = \number(standardValue());
+	newInt.src = original.src;
+	
+	return newInt;
 }

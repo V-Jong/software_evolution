@@ -48,6 +48,7 @@ public void printCloneClasses(map[node, set[node]] cloneClasses) {
 
 public void printClonesReport(map[node, set[node]] clones, totalLOC) {
 	set[set[node]] cloneGroups = range(clones);
+//	iprintln(cloneGroups);
 	println();
 	println("Project contains <totalLOC> lines");
 	
