@@ -6,12 +6,15 @@ import IO;
 import main::CloneMetrics;
 
 import lang::java::m3::AST;
+import lang::java::jdt::m3::Core;
 
-private void printSource(loc source) {
+import IO;
+
+public void printSource(loc source) {
 	println(readFile(source));
 }
 
-private void printGroup(map[node, set[node]] group) {
+public void printGroup(map[node, set[node]] group) {
 	for (key <- group) {
 		println(key);
 		println("##########");			
@@ -51,21 +54,21 @@ public void printClonesReport(map[node, set[node]] clones, totalLOC) {
 //	iprintln(cloneGroups);
 	println();
 	println("Project contains <totalLOC> lines");
-	
+
 	clonesLOC = totalLOCClones(cloneGroups);
 	println("The total LOC of all clones in project is <clonesLOC> lines");
-	
+
 	real clonePercentage = getClonePercentage(clonesLOC, totalLOC);
 	println("Percentage of clones is: <clonePercentage>%");
-	
+
 	nrCloneClasses = getAmountOfCloneClasses(cloneGroups);
 	nrClones = getAmountOfClones(cloneGroups);
 	println("Nr of clone classes: <nrCloneClasses>");
 	println("Nr of clones: <nrClones>");
-	
+
 	tuple[loc location, int bSize] biggestClone = getBiggestClone(cloneGroups);
 	println("The largest clone consists of <biggestClone.bSize> lines, example: <biggestClone.location>");
-	
+
 	int biggestCloneClass = getBiggestCloneClass(cloneGroups);
 	println("The largest clone class consists of <biggestCloneClass> clones");
 }

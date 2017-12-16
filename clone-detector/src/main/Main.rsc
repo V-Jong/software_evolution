@@ -18,7 +18,8 @@ import main::Config;
 import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 
-public map[str, set[loc]] cloneLocationsPerFile = ();
+public map[str, set[node]] clonesPerFile = ();
+public map[node, set[node]] cloneMap = ();
 
 public void detectClones(loc project) {
 	println("Running clone detection for <project>");
@@ -30,7 +31,7 @@ public void detectClones(loc project) {
 	totalLOC = totalLOCForProject(fileAsts);
 
 	set[node] subtrees = findSubtrees(fileAsts);
-	
+
 	set[node] normalisedSubtrees = normaliseNodes(subtrees);
 
 	type1Clones = findClonesForTree(subtrees);
@@ -42,7 +43,7 @@ public void detectClones(loc project) {
 //	printCloneClasses(type1Clones);
 //
 //    printClonesReport(type1Clones, totalLOC);
-//    
+//
     printCloneClasses(type2Clones);
 
     printClonesReport(type2Clones, totalLOC);
@@ -52,23 +53,41 @@ private map[node, set[node]] findClonesForTree(set[node] tree) {
 	map[node, set[node]] groupedByNormalisedAst = classify(tree, unsetRec);
 	map[node, set[node]] cloneClasses = filterNonDuplicates(groupedByNormalisedAst);
 	map[node, set[node]] noSubsumptedCloneClasses = dropSubsumptedCloneClasses(cloneClasses);
-	return noSubsumptedCloneClasses;
+
+	println("!!!!");
+	clonesPerFile = getClonesPerFile(noSubsumptedCloneClasses);
+	cloneMap = noSubsumptedCloneClasses;
+	println("Finished clone detection");
+
+	//printCloneClasses(noSubsumptedCloneClasses);
+
+    //printClonesReport(noSubsumptedCloneClasses, totalLOC);
+
+    return noSubsumptedCloneClasses;
 }
 
-private map[str, set[loc]] getCloneLocationsPerFile (map[node, set[node]] cloneClasses) {
-	allCloneLocations = mapper(flatten(range(cloneClasses)), getLocation);
-	return classify(allCloneLocations, getUri);
+public set[set[node]] getSiblings(node clone, set[set[node]] cloneClasses) {
+	return {cloneClass - clone | cloneClass <- cloneClasses, {clone} < cloneClass};
 }
 
-private str getUri(loc location) {
-	return PROJECT.uri + location.path;
+private map[str, set[node]] getClonesPerFile (map[node, set[node]] cloneClasses) {
+	allClones = flatten(range(cloneClasses));
+	return classify(allClones, getLocationUri);
 }
 
-private loc getLocation(node tree) {
+public loc getLocation(node tree) {
 	switch (tree) {
 		case Declaration x: return x.src;
 		case Expression x: return x.src;
 		case Statement x: return x.src;
+	}
+}
+
+private str getLocationUri(node tree) {
+	switch (tree) {
+		case Declaration x: return x.src.path;
+		case Expression x: return x.src.path;
+		case Statement x: return x.src.path;
 	}
 }
 
@@ -135,7 +154,7 @@ private set[node] normaliseNodes(set[node] nodes) {
 		case Type x => wildcard()
 	}
 //	iprintln(normalised);
-	
+
 	return normalised;
 }
 
@@ -149,6 +168,6 @@ public Declaration createNormalisedMethod(Declaration original) {
 public Expression createIntNode(Expression original) {
 	newInt = \number(standardValue());
 	newInt.src = original.src;
-	
+
 	return newInt;
 }
