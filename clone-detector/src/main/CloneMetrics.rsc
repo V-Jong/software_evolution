@@ -69,6 +69,11 @@ public int getLocationSize(loc location) {
 	catch: return 0;
 }
 
+public loc getLocationFromValue(value val) {
+	if (loc tmp := val) return tmp;
+	return |unknown:///|;
+}
+
 public void cc() {
 	loc location = |java+compilationUnit:///src/HelloWorld.java|(301,218,<13,4>,<18,5>);// |project://example|;
 	switch (location) {
