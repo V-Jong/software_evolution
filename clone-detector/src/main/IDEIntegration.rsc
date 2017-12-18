@@ -21,6 +21,8 @@ import lang::java::jdt::m3::Core;
 data DuplicationTree = TreeRoot(ClonesCurrentFile duplicates);
 data ClonesCurrentFile = clonesCurrentFile(set[loc] clones);
 
+public bool clonesDetected = false; 
+
 public void register() {
 	str LANGUAGE_NAME = "Clone Detection";
 	str FILE_EXTENSION = "java";
@@ -36,6 +38,7 @@ public void register() {
 }
 
 private void performCloneDetection(Tree t, loc s) {
+	clonesDetected = true;
 	tmp = |project:///|;
 	tmp.authority = s.authority;
  	detectClones(tmp);
@@ -47,10 +50,8 @@ private start[CompilationUnit] abc(str x, loc l) {
 }
 
 public loc setSchemeToProject(loc location) {
-	println(location);
 	location.scheme = "project";
 	location.authority = PROJECT.authority;
-	println(location);
 	return location;
 }
 
@@ -75,8 +76,10 @@ public bool sameLocation(loc location1, loc location2) {
 	location1.end.column == location2.end.column;
 }
 
-private Tree annotateModule(Tree t) {
-	println("Annotating");
+private Tree annotateModule(Tree t) {	
+	if (!clonesDetected) {
+		return t;
+	}
 	currentLocation = t@\loc;
 	
 	set[node] clonesInFile = clonesPerFile[currentLocation.path];
@@ -84,6 +87,7 @@ private Tree annotateModule(Tree t) {
 	set[loc] cloneLocations = mapper(clonesInFile, getLocation);
 
 	// The goal here is to annotate each clone in the file with links to it's siblings.
+
 	visit(t) {
 		case Tree x: {
 			if("loc" in getAnnotations(x)) {
@@ -109,6 +113,10 @@ private Tree annotateModule(Tree t) {
 }
 
 private node outlinerModule(Tree t) {
+	if (!clonesDetected) {
+		return t;
+	}
+	
 	currentLocation = t@\loc;
 	
 	clonesInFile = clonesCurrentFile(mapper(clonesPerFile[currentLocation.path], getLocation));
