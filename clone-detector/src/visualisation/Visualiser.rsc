@@ -15,28 +15,6 @@ import vis::Figure;
 import vis::Render;
 import vis::KeySym;
 
-public void main() {
-	s = "";
-	b = box(text(str () { return s; }), fillColor("red"), shrink(0.5), onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers) {
-		s = "<butnr>";
-		return true;
-	}));
-//	render(b);
-//	render(tree());
-//	render(outline([info(100,"a"), warning(125, "b"), highlight(190, "c")], 200, size(50, 200)));
-	i = vcat(getLines(23, [3,4,5,6,7,8,10,11,12,13,14,15,18,19,20,21]), resizable(false), size(130, 200));
-	sc = vcat([text("HelloWorld.java\n"), i], resizable(false));
-//	render(sc);
-	
-	b1 = box(size(20,30), fillColor("Red"));
-	b2 = box(size(40,20), fillColor("Blue"));
-	b3 = box(size(40,40), fillColor("Yellow"));
-	b4 = box(size(10,20), fillColor("Green"));
-	b5 = box(size(10,20), fillColor("Purple"));
-	b6 = box(size(60,20), fillColor("Orange"));
-	render(hvcat([b1, b2, b3, b4, b5, b6], gap(5)));
-}
-
 public void getFileVisualisations(map[str, set[node]] clonesPerFiles, loc project) {
 	list[Figure] fileFigs = [];
 	for (file <- clonesPerFiles) {
@@ -44,12 +22,12 @@ public void getFileVisualisations(map[str, set[node]] clonesPerFiles, loc projec
 			set[node] fileClones = clonesPerFiles[file];
 			loc fileLoc = project + file;
 			int fileSize = LOCForFileAst(createAstFromFile(fileLoc, true));
-			Figure linesFig = vcat(getLines(fileSize, fileClones), resizable(false), hsize(130), top());
-			Figure fileFig = vcat([text(fileLoc.file, valign(0)), linesFig], resizable(false), valign(0));
+			Figure linesFig = vcat(getLines(fileSize, fileClones), resizable(false), hsize(130));
+			Figure fileFig = vcat([text(fileLoc.file, valign(0)), linesFig], resizable(false));
 			fileFigs += fileFig;
 		}
 	}
-	render(hvcat(fileFigs, gap(20), valign(0)));
+	render(hvcat(fileFigs, gap(20), ialign(0.0)));
 }
 
 public list[Figure] getLines(int size, set[node] clones) {
@@ -69,8 +47,8 @@ public list[Figure] getLines(int size, set[node] clones) {
 private bool isCloneLine(int lineNumber, set[node] clones) {
 	for (clone <- clones) {
 		if (loc cloneLocation := clone.src) {
-			list[int] lineRange = [cloneLocation.begin.line .. (cloneLocation.end.line+1)];
-			if (lineNumber in lineRange)
+//			list[int] lineRange = [cloneLocation.begin.line .. (cloneLocation.end.line+1)];
+			if (lineNumber >= cloneLocation.begin.line && lineNumber <= cloneLocation.end.line)
 				return true;
 		}
 	}
@@ -81,8 +59,8 @@ private loc getSmallestCloneForLine(int lineNumber, set[node] clones) {
 	list[node] smallestClones = [];
 	for (clone <- clones) {
 		if (loc cloneLocation := clone.src) {
-			list[int] lineRange = [cloneLocation.begin.line .. cloneLocation.end.line+1];
-			if (lineNumber in lineRange) {
+//			list[int] lineRange = [cloneLocation.begin.line .. cloneLocation.end.line+1];
+			if (lineNumber >= cloneLocation.begin.line && lineNumber <= cloneLocation.end.line) {
 				smallestClones += clone;
 			}
 		}
