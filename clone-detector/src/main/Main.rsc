@@ -12,8 +12,10 @@ import util::Math;
 import main::LinesOfCode;
 import main::lib::SetHelpers;
 import main::lib::PrintHelpers;
+import main::Logger;
 
 import main::Config;
+import visualisation::Visualiser;
 
 import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
@@ -25,17 +27,23 @@ public void detectClones(loc project) {
 	println("Running clone detection for <project>");
 	M3 model = createM3FromEclipseProject(project);
 	
+	println("Creating AST\'s for project files");
+	
 	set[loc] projectFiles = files(model);
 	set[Declaration] fileAsts = createAstsFromFiles(projectFiles);
 	
-	totalLOC = totalLOCForProject(fileAsts);
+	totalLOC = totalLOCForProjectAst(fileAsts);
 
+	println("Searching for subtrees");
+	
 	set[node] subtrees = findSubtrees(fileAsts);
 
-	set[node] normalisedSubtrees = normaliseNodes(subtrees);
+//	set[node] normalisedSubtrees = normaliseNodes(subtrees);
 
+	println("Searching type 1 clones");
+	
 	type1Clones = findClonesForTree(subtrees);
-	type2Clones = findClonesForTree(normalisedSubtrees);
+//	type2Clones = findClonesForTree(normalisedSubtrees);
 
 	cloneLocationsPerFile = getClonesPerFile(type1Clones);
 	println("Finished clone detection");
@@ -44,9 +52,13 @@ public void detectClones(loc project) {
 //
 //    printClonesReport(type1Clones, totalLOC);
 //
-    printCloneClasses(type2Clones);
-
-    printClonesReport(type2Clones, totalLOC);
+//    printCloneClasses(type2Clones);
+//
+//    printClonesReport(type2Clones, totalLOC);
+	
+	logClones(LOG_FILE, type1Clones);
+    
+    getFileVisualisations(cloneLocationsPerFile, project);
 }
 
 private map[node, set[node]] findClonesForTree(set[node] tree) {
@@ -141,33 +153,48 @@ public str standardName() = "Non determinism is bad mmkay";
 public str standardValue() = "5";
 
 private set[node] normaliseNodes(set[node] nodes) {
-//	iprintln(nodes);
-	set[node] result = {};
-	normalised = visit (nodes) {
-		case x:\method(a, name, b, c, d) => createNormalisedMethod(x) //\method(a, standardName(), b, c, d)
-//		case x:\method(a, name, b) => \method(a, standardName(), b)
-		case x:\variable(name, a) => \variable(standardName(), a)
-		case x:\variable(name, a, b) => \variable(standardName(), a, b)
-		case x:\number(_) => createIntNode(x)
-		case x:\stringLiteral(_) => createIntNode(x)
-		case x:\booleanLiteral(_) => createIntNode(x)
-		case Type x => wildcard()
-	}
-//	iprintln(normalised);
-
-	return normalised;
+    set[node] result = {};
+    normalised = visit (nodes) {
+        case x:\method(_, _, _, _, _) => createNormalisedNode(x)
+        case x:\variable(_, _) => createNormalisedNode(x)
+        case x:\variable(_, _, _) => createNormalisedNode(x)
+        case x:\number(_) => createNormalisedNode(x)
+        case x:\stringLiteral(_) => createNormalisedNode(x)
+        case x:\booleanLiteral(_) => createNormalisedNode(x)
+        case Type x => wildcard()
+    }
+    
+    return normalised;
 }
 
-public Declaration createNormalisedMethod(Declaration original) {
-	newMethod = \method(original.\return, standardName(), original.parameters, original.exceptions, original.impl);
-	newMethod.src = original.src;
-
-	return newMethod;
+private node createNormalisedNode(node original) {
+    node newNode;
+    switch (original) {
+        case x:\method(xRet, _, xParam, xExc, xImpl): {
+            newNode = \method(xRet, standardName(), xParam, xExc, xImpl);
+        }
+        case x:\variable(_, xExtraDims, xInit): {
+            newNode = \variable(standardName(), xExtraDims, xInit);
+        }
+        case x:\variable(_, xExtraDims): {
+            newNode = \variable(standardName(), xExtraDims);
+        }
+        case x:\number(_): {
+            newNode = \number(standardValue());
+        }
+        case x:\stringLiteral(_): {
+            newNode = \number(standardValue());
+        }
+        case x:\booleanLiteral(_): {
+            newNode = \number(standardValue());
+        }
+    }
+    newNode.src = getNodeLoc(original);
+    return newNode;
 }
 
-public Expression createIntNode(Expression original) {
-	newInt = \number(standardValue());
-	newInt.src = original.src;
-
-	return newInt;
+private loc getNodeLoc(node pNode) {
+    loc location = |unknown:///|;
+    if (loc l := pNode.src) location = l;
+    return location;
 }
