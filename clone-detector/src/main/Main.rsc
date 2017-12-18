@@ -66,7 +66,6 @@ private map[node, set[node]] findClonesForTree(set[node] tree) {
 	map[node, set[node]] cloneClasses = filterNonDuplicates(groupedByNormalisedAst);
 	map[node, set[node]] noSubsumptedCloneClasses = dropSubsumptedCloneClasses(cloneClasses);
 
-	println("!!!!");
 	clonesPerFile = getClonesPerFile(noSubsumptedCloneClasses);
 	cloneMap = noSubsumptedCloneClasses;
 	println("Finished clone detection");
@@ -78,7 +77,7 @@ private map[node, set[node]] findClonesForTree(set[node] tree) {
     return noSubsumptedCloneClasses;
 }
 
-public set[set[node]] getSiblings(node clone, set[set[node]] cloneClasses) {
+public set[set[&T]] getSiblings(&T clone, set[set[&T]] cloneClasses) {
 	return {cloneClass - clone | cloneClass <- cloneClasses, {clone} < cloneClass};
 }
 

@@ -13,3 +13,9 @@ test bool isSubsumptedSpec() {
 	
 	return !isSubsumpted({"d"}, someSet);
 }
+
+test bool getSiblingsSpec() {
+	set[set[str]] someSet = {{"a", "b", "c"}, {"d", "e", "f"}};
+	
+	return getSiblings("a", someSet) == {{"b", "c"}};
+}
