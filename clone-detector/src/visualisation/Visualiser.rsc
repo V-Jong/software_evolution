@@ -15,7 +15,7 @@ import vis::Figure;
 import vis::Render;
 import vis::KeySym;
 
-public void getFileVisualisations(map[str, set[node]] clonesPerFiles, loc project) {
+public void visualiseClones(map[str, set[node]] clonesPerFiles, loc project) {
 	list[Figure] fileFigs = [];
 	for (file <- clonesPerFiles) {
 		if (file != "/") {

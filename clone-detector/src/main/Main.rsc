@@ -58,7 +58,7 @@ public void detectClones(loc project) {
 	
 	logClones(LOG_FILE, type1Clones);
     
-    getFileVisualisations(clonesPerFile, project);
+	visualiseClones(clonesPerFile, project);
 }
 
 private map[node, set[node]] findClonesForTree(set[node] tree) {
