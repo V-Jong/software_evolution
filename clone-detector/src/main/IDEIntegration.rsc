@@ -8,8 +8,15 @@ import Node;
 import demo::lang::Exp::Concrete::NoLayout::Syntax;
 import ParseTree;
 import lang::java::\syntax::Java15;
+import Type;
+
+import main::lib::SetHelpers;
 
 import main::Main;
+import main::Config;
+
+import lang::java::m3::AST;
+import lang::java::jdt::m3::Core;
 
 data DuplicationTree = TreeRoot(ClonesCurrentFile duplicates);
 data ClonesCurrentFile = clonesCurrentFile(set[loc] clones);
@@ -41,27 +48,69 @@ private start[CompilationUnit] abc(str x, loc l) {
 	return parseTree; 
 }
 
-private Tree annotateModule(Tree t) {
-	currentLocation = t@\loc;
-	//iprintln(t);
-	location = |project://example/src/HelloWorld2.java|(0,0,<1,0>,<1,0>);
-	visit(t) {
-		case node x:
-			if("loc" in getAnnotations(x) && x@\loc == location) {
-				println("!!!");
-			}
+public loc setSchemeToProject(loc location) {
+	println(location);
+	location.scheme = "project";
+	location.authority = PROJECT.authority;
+	println(location);
+	return location;
+}
+
+public bool isTreeAClone(loc locationParseTree, set[loc] cloneLocations) {
+	return any(loc cloneLocation <- cloneLocations, sameLocation(cloneLocation, locationParseTree));
+}
+
+public node getCloneNodeFromParseTree(loc location, set[node] clonesInFile) {
+	for (node clone <- clonesInFile) {
+		cloneLocation = getLocation(clone);
+		same = sameLocation(location, cloneLocation);
+		if(same) {
+			return clone;	
+		}
 	}
+}
+
+public bool sameLocation(loc location1, loc location2) {
+	return location1.begin.line == location2.begin.line && 
+	location1.begin.column == location2.begin.column &&
+	location1.end.line == location2.end.line &&
+	location1.end.column == location2.end.column;
+}
+
+private Tree annotateModule(Tree t) {
+	println("Annotating");
+	currentLocation = t@\loc;
 	
 	set[node] clonesInFile = clonesPerFile[currentLocation.path];
+	
+	set[loc] cloneLocations = mapper(clonesInFile, getLocation);
+
+	// The goal here is to annotate each clone in the file with links to it's siblings.
+	visit(t) {
+		case Tree x: {
+			if("loc" in getAnnotations(x)) {
+				if(isTreeAClone(x@\loc, cloneLocations)) {
+					node cloneAtThisLocation = getCloneNodeFromParseTree(x@\loc, clonesInFile);
+					
+					set[node] siblings = flatten(getSiblings(cloneAtThisLocation, range(cloneMap)));
+					
+					siblingLocations = mapper(siblings, getLocation);
+					
+					x@links = siblingLocations;
+				}
+			}
+		}
+	}
+	
+	// messages are set on the root of the parse tree
 	set[Message] messages = {info(getLocation(sibling).path , getLocation(clone)) | clone <- clonesInFile, siblings <- getSiblings(clone, range(cloneMap)), sibling <- siblings};
-	//map[loc, str] documentation = (getLocation(clone): "documentation" | clone <- clonesInFile);
+	
 	t@\messages = messages;
-	t@\links = mapper(clonesInFile, getLocation);
+	
 	return t;
 }
 
 private node outlinerModule(Tree t) {
-	println("outlining");
 	currentLocation = t@\loc;
 	
 	clonesInFile = clonesCurrentFile(mapper(clonesPerFile[currentLocation.path], getLocation));
