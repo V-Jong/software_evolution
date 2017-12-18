@@ -13,4 +13,3 @@ test bool isSubsumptedSpec() {
 	
 	return !isSubsumpted({"d"}, someSet);
 }
-

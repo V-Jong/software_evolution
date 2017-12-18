@@ -107,7 +107,7 @@ private map[node, set[node]] filterNonDuplicates(map[node, set[node]] grouped) {
 	return (group: grouped[group] | group <- grouped, size(grouped[group]) > 1);
 }
 
-private map[node, set[node]] dropSubsumptedCloneClasses(map[node, set[node]] cloneClasses) {
+public map[node, set[node]] dropSubsumptedCloneClasses(map[node, set[node]] cloneClasses) {
 	set[set[node]] valuesOnly = range(cloneClasses);
 	set[set[node]] cloneClassesChildren = mapper(valuesOnly, findSubtreesNodes);
 	
@@ -115,8 +115,8 @@ private map[node, set[node]] dropSubsumptedCloneClasses(map[node, set[node]] clo
 }
 
 // A subsumpted clone class is a clone class that is strictly included in another
-private bool isSubsumpted(set[&T] cloneClass, set[set[&T]] cloneClassesChildren) {
-	return any(set[node] setOfChildren <- cloneClassesChildren, cloneClass < setOfChildren);
+public bool isSubsumpted(set[&T] cloneClass, set[set[&T]] cloneClassesChildren) {
+	return any(set[&T] setOfChildren <- cloneClassesChildren, cloneClass < setOfChildren);
 }
 
 private set[Declaration] createAstsFromFiles(set[loc] javaFiles) {
