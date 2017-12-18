@@ -102,7 +102,7 @@ private str getLocationUri(node tree) {
 	}
 }
 
-private map[node, set[node]] filterNonDuplicates(map[node, set[node]] grouped) {
+public map[&T, set[&T]] filterNonDuplicates(map[&T, set[&T]] grouped) {
 	return (group: grouped[group] | group <- grouped, size(grouped[group]) > 1);
 }
 
