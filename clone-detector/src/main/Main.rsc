@@ -45,7 +45,7 @@ public void detectClones(loc project) {
 	type1Clones = findClonesForTree(subtrees);
 //	type2Clones = findClonesForTree(normalisedSubtrees);
 
-	cloneLocationsPerFile = getClonesPerFile(type1Clones);
+	clonesPerFile = getClonesPerFile(type1Clones);
 	println("Finished clone detection");
 
 //	printCloneClasses(type1Clones);
