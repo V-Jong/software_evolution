@@ -20,8 +20,6 @@ import lang::java::jdt::m3::Core;
 
 data DuplicationTree = TreeRoot(ClonesCurrentFile duplicates);
 data ClonesCurrentFile = clonesCurrentFile(set[loc] clones);
-//data AllClones = allClones(map[str, set[loc]] cloneLocationsPerFile);
-data OtherFile = otherFile(str fileName);
 
 public void register() {
 	str LANGUAGE_NAME = "Clone Detection";
@@ -115,6 +113,7 @@ private node outlinerModule(Tree t) {
 	
 	clonesInFile = clonesCurrentFile(mapper(clonesPerFile[currentLocation.path], getLocation));
 	clonesInFile@label = "Clones detected in this file:";
+	 
 	customTree = TreeRoot(clonesInFile);
 	
 	return customTree;
