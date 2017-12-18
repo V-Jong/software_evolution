@@ -1,4 +1,4 @@
-public class HelloWorld {
+public class HelloWorld2 {
 
     public static void cloneClassA() {    	
 			int a = 0; // Also part of cloneClassB
