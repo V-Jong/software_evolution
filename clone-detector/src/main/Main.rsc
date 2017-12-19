@@ -58,7 +58,7 @@ public void detectClones(loc project) {
 	
 	logClones(LOG_FILE, type1Clones);
     
-    getFileVisualisations(cloneLocationsPerFile, project);
+	visualiseClones(clonesPerFile, project);
 }
 
 private map[node, set[node]] findClonesForTree(set[node] tree) {
@@ -103,7 +103,7 @@ private str getLocationUri(node tree) {
 }
 
 public map[&T, set[&T]] filterNonDuplicates(map[&T, set[&T]] grouped) {
-	return (group: grouped[group] | group <- grouped, size(grouped[group]) > 1);
+	return (group: grouped[group] | group <- grouped, size(grouped[group]) > 1 && validMass(grouped[group]));
 }
 
 public map[node, set[node]] dropSubsumptedCloneClasses(map[node, set[node]] cloneClasses) {
@@ -146,6 +146,22 @@ private set[node] findSubtreesNode(node parent) {
 		case node x: subtrees += x;
 	}	
 	return subtrees - parent;
+}
+
+private bool validMass(set[node] nodes) {
+    for (pNode <- nodes) {
+        if (getNodeSize(pNode) < 8)
+            return false;
+    }
+    return true;
+}
+
+private int getNodeSize(node pNode) {
+    int total = 0;
+    visit(pNode) {
+        case node x: total += 1;
+    }
+    return total;
 }
 
 public str standardName() = "Non determinism is bad mmkay";
