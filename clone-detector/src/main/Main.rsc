@@ -111,7 +111,7 @@ private str getLocationUri(node tree) {
 }
 
 public map[&T, set[&T]] filterNonDuplicates(map[&T, set[&T]] grouped) {
-	return (group: grouped[group] | group <- grouped, size(grouped[group]) > 1 && && validMass(grouped[group]);
+	return (group: grouped[group] | group <- grouped, size(grouped[group]) > 1 && validMass(grouped[group]));
 }
 
 public map[node, set[node]] dropSubsumptedCloneClasses(map[node, set[node]] cloneClasses) {
