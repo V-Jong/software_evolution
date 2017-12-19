@@ -7,6 +7,7 @@ import Map;
 
 import IO;
 
+import util::Benchmark;
 import util::Math;
 
 import main::LinesOfCode;
@@ -22,6 +23,13 @@ import lang::java::jdt::m3::Core;
 
 public map[str, set[node]] clonesPerFile = ();
 public map[node, set[node]] cloneMap = ();
+
+public void run() {
+	loc project = |project://example|;
+	loc project2 = |project://smallsql0.21_src|;
+	results = benchmark(("Clone detection": void() { detectClones(project); }) );
+	println("\nExecution time: " + toString(results["Clone detection"] / 1000) + "s");
+}
 
 public void detectClones(loc project) {
 	println("Running clone detection for <project>");
@@ -50,7 +58,7 @@ public void detectClones(loc project) {
 
 //	printCloneClasses(type1Clones);
 //
-//    printClonesReport(type1Clones, totalLOC);
+    printClonesReport(type1Clones, totalLOC);
 //
 //    printCloneClasses(type2Clones);
 //
