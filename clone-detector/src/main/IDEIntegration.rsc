@@ -88,8 +88,8 @@ private Tree annotateModule(Tree t) {
 
 	// The goal here is to annotate each clone in the file with links to it's siblings.
 
-	visit(t) {
-		case Tree x: {
+	k = visit(t) {
+		case Tree x => {
 			if("loc" in getAnnotations(x)) {
 				if(isTreeAClone(x@\loc, cloneLocations)) {
 					node cloneAtThisLocation = getCloneNodeFromParseTree(x@\loc, clonesInFile);
@@ -101,15 +101,16 @@ private Tree annotateModule(Tree t) {
 					x@links = siblingLocations;
 				}
 			}
+			x;
 		}
 	}
 	
 	// messages are set on the root of the parse tree
 	set[Message] messages = {info(getLocation(sibling).path , getLocation(clone)) | clone <- clonesInFile, siblings <- getSiblings(clone, range(cloneMap)), sibling <- siblings};
 	
-	t@\messages = messages;
+	k@\messages = messages;
 	
-	return t;
+	return k;
 }
 
 private node outlinerModule(Tree t) {
